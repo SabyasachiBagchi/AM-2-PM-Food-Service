@@ -9,26 +9,46 @@ document.addEventListener('DOMContentLoaded', () => {
             this.selectedDate = null;
             this.editingPaymentId = null;
 
-            // Data
+            // User accounts
             this.users = ["Abid Hossain", "Ahsan Ansari"];
             this.mealRate = 45;
-            this.mealData = {
-                "Abid Hossain": { 
-                    "2025-07-25": { lunch: true, dinner: true },
-                    "2025-08-27": { lunch: true, dinner: false }, 
-                    "2025-08-26": { lunch: true, dinner: true } 
-                },
-                "Ahsan Ansari": { "2025-08-26": { lunch: true, dinner: true } }
-            };
-            this.paymentData = {
-                "Abid Hossain": [
-                    { id: Date.now() - 1000, amount: 500, date: "2025-07-15" },
-                    { id: Date.now(), amount: 1500, date: "2025-08-01" }
-                ],
-                "Ahsan Ansari": [{ id: Date.now() + 1, amount: 2000, date: "2025-08-05" }]
-            };
+
+            // Load data from Local Storage or use initial data
+            this._loadData();
             
             this.init();
+        }
+        
+        // --- DATA PERSISTENCE --- //
+        
+        _saveData() {
+            localStorage.setItem('mealData', JSON.stringify(this.mealData));
+            localStorage.setItem('paymentData', JSON.stringify(this.paymentData));
+        }
+
+        _loadData() {
+            const savedMealData = localStorage.getItem('mealData');
+            const savedPaymentData = localStorage.getItem('paymentData');
+
+            if (savedMealData) {
+                this.mealData = JSON.parse(savedMealData);
+            } else {
+                // Default data if nothing is saved
+                this.mealData = {
+                    "Abid Hossain": { "2025-08-27": { lunch: true, dinner: false }, "2025-08-26": { lunch: true, dinner: true } },
+                    "Ahsan Ansari": { "2025-08-26": { lunch: true, dinner: true } }
+                };
+            }
+
+            if (savedPaymentData) {
+                this.paymentData = JSON.parse(savedPaymentData);
+            } else {
+                // Default data if nothing is saved
+                this.paymentData = {
+                    "Abid Hossain": [{ id: Date.now(), amount: 1500, date: "2025-08-01" }],
+                    "Ahsan Ansari": [{ id: Date.now() + 1, amount: 2000, date: "2025-08-05" }]
+                };
+            }
         }
 
         init() {
@@ -199,6 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!this.mealData[this.currentUser]) this.mealData[this.currentUser] = {};
             if (!this.mealData[this.currentUser][dateStr]) this.mealData[this.currentUser][dateStr] = { lunch: false, dinner: false };
             this.mealData[this.currentUser][dateStr][meal] = status;
+            this._saveData(); // Save changes
             this.renderDayDetailView();
         }
         
@@ -248,6 +269,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.paymentData[this.currentUser].push({ id: Date.now(), amount, date });
             }
+            this._saveData(); // Save changes
             this.resetPaymentForm();
             this.updatePaymentList();
         }
@@ -261,6 +283,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleDeletePayment(id) {
             if (confirm('Delete this payment?')) {
                 this.paymentData[this.currentUser] = this.paymentData[this.currentUser].filter(p => p.id != id);
+                this._saveData(); // Save changes
                 this.updatePaymentList();
             }
         }
