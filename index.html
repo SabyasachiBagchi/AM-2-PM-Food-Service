@@ -43,12 +43,14 @@
                     <i class="fas fa-utensils"></i>
                     <span>AM 2 PM Food Service</span>
                 </div>
+                <div id="realtime-clock" class="realtime-clock">
+                    <span id="clock-time">12:00:00 PM</span>
+                    <span id="clock-date">August 27, 2025</span>
+                </div>
                 <div class="navbar-controls">
                     <div class="user-selector">
                         <label for="userSelect" class="form-label">Viewing:</label>
-                        <select id="userSelect" class="form-control">
-                            <option value="">Select User</option>
-                        </select>
+                        <select id="userSelect" class="form-control"></select>
                     </div>
                     <div class="user-info">
                         <span id="currentUser">View Only</span>
@@ -77,39 +79,27 @@
 
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar-check"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
                         <div class="stat-content">
-                            <h3 id="mealsEaten">0</h3>
-                            <p>Meals Eaten</p>
+                            <h3 id="mealsEaten">0</h3><p>Meals Eaten</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-rupee-sign"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
                         <div class="stat-content">
-                            <h3 id="totalDue">₹0</h3>
-                            <p>Total Spent</p>
+                            <h3 id="totalDue">₹0</h3><p>Total Spent</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-credit-card"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
                         <div class="stat-content">
-                            <h3 id="amountPaid">₹0</h3>
-                            <p>Amount Paid</p>
+                            <h3 id="amountPaid">₹0</h3><p>Amount Paid</p>
                         </div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-balance-scale"></i>
-                        </div>
+                        <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
                         <div class="stat-content">
-                            <h3 id="balance">₹0</h3>
-                            <p>Balance</p>
+                            <h3 id="balance">₹0</h3><p>Balance</p>
                         </div>
                     </div>
                 </div>
@@ -129,12 +119,9 @@
 
             <div id="dayDetailView" class="view hidden">
                 <div class="day-detail-header">
-                    <button id="backToCalendar" class="btn btn--outline">
-                        <i class="fas fa-arrow-left"></i> Back to Calendar
-                    </button>
+                    <button id="backToCalendar" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back to Calendar</button>
                     <h1 id="selectedDate">Today</h1>
                 </div>
-
                 <div class="meal-cards">
                     <div class="meal-card">
                         <div class="meal-header">
@@ -143,13 +130,11 @@
                         </div>
                         <div class="meal-toggle">
                             <label class="toggle-switch">
-                                <input type="checkbox" id="lunchToggle">
-                                <span class="toggle-slider"></span>
+                                <input type="checkbox" id="lunchToggle"><span class="toggle-slider"></span>
                             </label>
                             <span id="lunchToggleLabel" class="toggle-label">I ate lunch today</span>
                         </div>
                     </div>
-
                     <div class="meal-card">
                         <div class="meal-header">
                             <h3><i class="fas fa-moon"></i> Dinner</h3>
@@ -157,39 +142,28 @@
                         </div>
                         <div class="meal-toggle">
                             <label class="toggle-switch">
-                                <input type="checkbox" id="dinnerToggle">
-                                <span class="toggle-slider"></span>
+                                <input type="checkbox" id="dinnerToggle"><span class="toggle-slider"></span>
                             </label>
                             <span id="dinnerToggleLabel" class="toggle-label">I ate dinner today</span>
                         </div>
                     </div>
                 </div>
-
                 <div class="day-summary">
                     <div class="summary-card">
                         <h4>Daily Summary</h4>
-                        <div class="summary-item">
-                            <span>Meals consumed:</span>
-                            <span id="dayMealCount">0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span>Daily cost:</span>
-                            <span id="dayCost">₹0</span>
-                        </div>
+                        <div class="summary-item"><span>Meals consumed:</span><span id="dayMealCount">0</span></div>
+                        <div class="summary-item"><span>Daily cost:</span><span id="dayCost">₹0</span></div>
                     </div>
                 </div>
             </div>
 
             <div id="paymentView" class="view hidden">
                 <div class="payment-header">
-                    <button id="backToCalendarFromPayment" class="btn btn--outline">
-                        <i class="fas fa-arrow-left"></i> Back to Calendar
-                    </button>
+                    <button id="backToCalendarFromPayment" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back to Calendar</button>
                     <h1>Payment Tracking</h1>
                 </div>
-
                 <div class="payment-form-card">
-                    <h3>Record Payment</h3>
+                    <h3 id="paymentFormTitle">Record Payment</h3>
                     <form id="paymentForm">
                         <div class="form-group">
                             <label for="paymentAmount" class="form-label">Amount Paid (₹)</label>
@@ -199,33 +173,28 @@
                             <label for="paymentDate" class="form-label">Payment Date</label>
                             <input type="date" id="paymentDate" class="form-control" required>
                         </div>
-                        <button type="submit" class="btn btn--primary">
-                            <i class="fas fa-save"></i> Save Payment
-                        </button>
+                        <div class="payment-form-buttons">
+                           <button type="submit" id="savePaymentBtn" class="btn btn--primary"><i class="fas fa-save"></i> Save Payment</button>
+                           <button type="button" id="cancelEditBtn" class="btn btn--outline hidden"><i class="fas fa-times"></i> Cancel</button>
+                        </div>
                     </form>
                 </div>
-
                 <div class="payment-history">
                     <h3>Payment History</h3>
-                    <div id="paymentList" class="payment-list">
-                        </div>
+                    <div id="paymentList" class="payment-list"></div>
                 </div>
             </div>
         </main>
 
         <div id="fab" class="fab hidden">
-            <button id="fabBtn" class="fab-button">
-                <i class="fas fa-plus"></i>
-            </button>
+            <button id="fabBtn" class="fab-button"><i class="fas fa-plus"></i></button>
             <div id="fabMenu" class="fab-menu hidden">
                 <button id="addPaymentBtn" class="fab-menu-item">
-                    <i class="fas fa-credit-card"></i>
-                    <span>Add Payment</span>
+                    <i class="fas fa-credit-card"></i><span>Add Payment</span>
                 </button>
             </div>
         </div>
     </div>
-
     <script src="app.js"></script>
 </body>
 </html>
