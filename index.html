@@ -8,6 +8,8 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
+    <div id="particles-js"></div>
+
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -52,6 +54,14 @@
                         <label for="userSelect" class="form-label">Viewing:</label>
                         <select id="userSelect" class="form-control"></select>
                     </div>
+                    <div class="theme-switcher">
+                        <label for="themeToggle" class="theme-toggle-label">
+                            <i class="fas fa-moon"></i>
+                            <input type="checkbox" id="themeToggle" class="theme-toggle-checkbox">
+                            <div class="theme-toggle-switch"></div>
+                            <i class="fas fa-sun"></i>
+                        </label>
+                    </div>
                     <div class="user-info">
                         <span id="currentUser">View Only</span>
                         <button id="logoutBtn" class="btn btn--outline btn--sm">
@@ -67,134 +77,21 @@
                 <div class="dashboard-header">
                     <h1>Monthly Overview</h1>
                     <div class="month-nav">
-                        <button id="prevMonth" class="btn btn--outline btn--sm">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
+                        <button id="prevMonth" class="btn btn--outline btn--sm"><i class="fas fa-chevron-left"></i></button>
                         <span id="currentMonth">August 2025</span>
-                        <button id="nextMonth" class="btn btn--outline btn--sm">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                        <button id="nextMonth" class="btn btn--outline btn--sm"><i class="fas fa-chevron-right"></i></button>
                     </div>
                 </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
-                        <div class="stat-content">
-                            <h3 id="mealsEaten">0</h3><p>Meals Eaten</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
-                        <div class="stat-content">
-                            <h3 id="totalDue">₹0</h3><p>Total Spent</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
-                        <div class="stat-content">
-                            <h3 id="amountPaid">₹0</h3><p>Amount Paid</p>
-                        </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-balance-scale"></i></div>
-                        <div class="stat-content">
-                            <h3 id="balance">₹0</h3><p>Balance</p>
-                        </div>
-                    </div>
-                </div>
-
+                <div class="stats-grid"></div>
                 <div class="calendar-section">
-                    <div class="calendar-header">
-                        <h2>Meal Calendar</h2>
-                        <div class="calendar-legend">
-                             <div class="legend-item"><span class="legend-dot taken"></span><span>Meal Taken</span></div>
-                             <div class="legend-item"><span class="legend-dot skipped"></span><span>Skipped</span></div>
-                             <div class="legend-item"><span class="legend-dot today"></span><span>Today</span></div>
-                        </div>
-                    </div>
+                    <div class="calendar-header"><h2>Meal Calendar</h2></div>
                     <div id="calendar" class="calendar-grid"></div>
                 </div>
             </div>
-
-            <div id="dayDetailView" class="view hidden">
-                <div class="day-detail-header">
-                    <button id="backToCalendar" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back to Calendar</button>
-                    <h1 id="selectedDate">Today</h1>
-                </div>
-                <div class="meal-cards">
-                    <div class="meal-card">
-                        <div class="meal-header">
-                            <h3><i class="fas fa-sun"></i> Lunch</h3>
-                            <div class="meal-cost">₹45</div>
-                        </div>
-                        <div class="meal-toggle">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="lunchToggle"><span class="toggle-slider"></span>
-                            </label>
-                            <span id="lunchToggleLabel" class="toggle-label">I ate lunch today</span>
-                        </div>
-                    </div>
-                    <div class="meal-card">
-                        <div class="meal-header">
-                            <h3><i class="fas fa-moon"></i> Dinner</h3>
-                            <div class="meal-cost">₹45</div>
-                        </div>
-                        <div class="meal-toggle">
-                            <label class="toggle-switch">
-                                <input type="checkbox" id="dinnerToggle"><span class="toggle-slider"></span>
-                            </label>
-                            <span id="dinnerToggleLabel" class="toggle-label">I ate dinner today</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="day-summary">
-                    <div class="summary-card">
-                        <h4>Daily Summary</h4>
-                        <div class="summary-item"><span>Meals consumed:</span><span id="dayMealCount">0</span></div>
-                        <div class="summary-item"><span>Daily cost:</span><span id="dayCost">₹0</span></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="paymentView" class="view hidden">
-                <div class="payment-header">
-                    <button id="backToCalendarFromPayment" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back to Calendar</button>
-                    <h1>Payment Tracking</h1>
-                </div>
-                <div class="payment-form-card">
-                    <h3 id="paymentFormTitle">Record Payment</h3>
-                    <form id="paymentForm">
-                        <div class="form-group">
-                            <label for="paymentAmount" class="form-label">Amount Paid (₹)</label>
-                            <input type="number" id="paymentAmount" class="form-control" placeholder="Enter amount" min="1" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="paymentDate" class="form-label">Payment Date</label>
-                            <input type="date" id="paymentDate" class="form-control" required>
-                        </div>
-                        <div class="payment-form-buttons">
-                           <button type="submit" id="savePaymentBtn" class="btn btn--primary"><i class="fas fa-save"></i> Save Payment</button>
-                           <button type="button" id="cancelEditBtn" class="btn btn--outline hidden"><i class="fas fa-times"></i> Cancel</button>
-                        </div>
-                    </form>
-                </div>
-                <div class="payment-history">
-                    <h3>Payment History</h3>
-                    <div id="paymentList" class="payment-list"></div>
-                </div>
-            </div>
-        </main>
-
-        <div id="fab" class="fab hidden">
-            <button id="fabBtn" class="fab-button"><i class="fas fa-plus"></i></button>
-            <div id="fabMenu" class="fab-menu hidden">
-                <button id="addPaymentBtn" class="fab-menu-item">
-                    <i class="fas fa-credit-card"></i><span>Add Payment</span>
-                </button>
-            </div>
-        </div>
+            </main>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
