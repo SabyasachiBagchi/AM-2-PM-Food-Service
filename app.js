@@ -6,855 +6,728 @@ class FoodServiceApp {
         this.currentDate = new Date();
         this.selectedDate = new Date();
         this.currentView = 'dashboard';
-        
+
         // Sample data from provided JSON
         this.users = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson"];
         this.monthlyRate = 2700;
         this.dailyRate = 90;
         this.mealRate = 45;
-        
-        // Initialize sample meal data
-        this.mealData = {
-            "John Doe": {
-                "2025-08-27": { lunch: true, dinner: false },
-                "2025-08-26": { lunch: true, dinner: true },
-                "2025-08-25": { lunch: false, dinner: true },
-                "2025-08-24": { lunch: true, dinner: false },
-                "2025-08-23": { lunch: false, dinner: false },
-                "2025-08-22": { lunch: true, dinner: true },
-                "2025-08-21": { lunch: true, dinner: true }
-            },
-            "Jane Smith": {
-                "2025-08-27": { lunch: false, dinner: true },
-                "2025-08-26": { lunch: true, dinner: true },
-                "2025-08-25": { lunch: true, dinner: false },
-                "2025-08-24": { lunch: false, dinner: true },
-                "2025-08-23": { lunch: true, dinner: false },
-                "2025-08-22": { lunch: true, dinner: true },
-                "2025-08-21": { lunch: false, dinner: false }
-            },
-            "Mike Johnson": {
-                "2025-08-27": { lunch: true, dinner: true },
-                "2025-08-26": { lunch: false, dinner: true },
-                "2025-08-25": { lunch: true, dinner: true },
-                "2025-08-24": { lunch: true, dinner: false },
-                "2025-08-23": { lunch: true, dinner: true }
-            },
-            "Sarah Wilson": {
-                "2025-08-27": { lunch: false, dinner: false },
-                "2025-08-26": { lunch: true, dinner: false },
-                "2025-08-25": { lunch: false, dinner: true },
-                "2025-08-24": { lunch: true, dinner: true },
-                "2025-08-23": { lunch: false, dinner: false }
-            }
-        };
-        
-        // Initialize sample payment data
-        this.paymentData = {
-            "John Doe": [
-                { amount: 1500, date: "2025-08-01", month: "August 2025" }
-            ],
-            "Jane Smith": [
-                { amount: 2700, date: "2025-08-01", month: "August 2025" }
-            ],
-            "Mike Johnson": [
-                { amount: 1000, date: "2025-08-05", month: "August 2025" }
-            ],
-            "Sarah Wilson": [
-                { amount: 800, date: "2025-08-10", month: "August 2025" }
-            ]
-        };
+
+        this.init();
     }
-    
+
     init() {
-        // Wait for DOM to be fully ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', () => {
-                this.setupApp();
-            });
-        } else {
-            this.setupApp();
-        }
-    }
-    
-    setupApp() {
-        console.log('Setting up app...');
         this.bindEvents();
-        this.showLoginModal();
+        this.updateDateTime();
+        setInterval(() => this.updateDateTime(), 1000);
     }
-    
+
     bindEvents() {
-        console.log('Binding events...');
-        
-        // Login form submission
-        const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
-            console.log('Login form found, binding submit event');
-            loginForm.addEventListener('submit', (e) => {
-                console.log('Login form submitted');
-                this.handleLogin(e);
+        // Login form
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.handleLogin();
+        });
+
+        // View only button
+        document.getElementById('viewOnlyBtn').addEventListener('click', () => {
+            this.handleViewOnly();
+        });
+
+        // User selector
+        document.getElementById('userSelect').addEventListener('change', (e) => {
+            this.currentUser = e.target.value;
+            this.renderCurrentView();
+        });
+
+        // Navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                const view = e.currentTarget.dataset.view;
+                this.switchView(view);
             });
-        } else {
-            console.error('Login form not found!');
-        }
-        
-        // View Only button
-        const viewOnlyBtn = document.getElementById('viewOnlyBtn');
-        if (viewOnlyBtn) {
-            console.log('View Only button found, binding click event');
-            viewOnlyBtn.addEventListener('click', (e) => {
-                console.log('View Only button clicked');
-                e.preventDefault();
-                this.handleViewOnly();
-            });
-        } else {
-            console.error('View Only button not found!');
-        }
-        
-        // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => this.logout());
-        }
-        
-        // User selection
-        const userSelect = document.getElementById('userSelect');
-        if (userSelect) {
-            userSelect.addEventListener('change', (e) => this.handleUserChange(e));
-        }
-        
-        // Navigation events
-        const backToCalendar = document.getElementById('backToCalendar');
-        if (backToCalendar) {
-            backToCalendar.addEventListener('click', () => this.showDashboard());
-        }
-        
-        const backToCalendarFromPayment = document.getElementById('backToCalendarFromPayment');
-        if (backToCalendarFromPayment) {
-            backToCalendarFromPayment.addEventListener('click', () => this.showDashboard());
-        }
-        
-        // Month navigation
-        const prevMonth = document.getElementById('prevMonth');
-        if (prevMonth) {
-            prevMonth.addEventListener('click', () => this.changeMonth(-1));
-        }
-        
-        const nextMonth = document.getElementById('nextMonth');
-        if (nextMonth) {
-            nextMonth.addEventListener('click', () => this.changeMonth(1));
-        }
-        
-        // Meal toggles
-        const lunchToggle = document.getElementById('lunchToggle');
-        if (lunchToggle) {
-            lunchToggle.addEventListener('change', (e) => this.handleMealToggle(e, 'lunch'));
-        }
-        
-        const dinnerToggle = document.getElementById('dinnerToggle');
-        if (dinnerToggle) {
-            dinnerToggle.addEventListener('change', (e) => this.handleMealToggle(e, 'dinner'));
-        }
-        
-        // Payment form
-        const paymentForm = document.getElementById('paymentForm');
-        if (paymentForm) {
-            paymentForm.addEventListener('submit', (e) => this.handlePaymentSubmit(e));
-        }
-        
-        // FAB events
-        const fabBtn = document.getElementById('fabBtn');
-        if (fabBtn) {
-            fabBtn.addEventListener('click', () => this.toggleFabMenu());
-        }
-        
-        const addPaymentBtn = document.getElementById('addPaymentBtn');
-        if (addPaymentBtn) {
-            addPaymentBtn.addEventListener('click', () => this.showPaymentView());
-        }
-        
-        // Global click handler for FAB menu
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('.fab')) {
-                this.closeFabMenu();
-            }
+        });
+
+        // Date navigation
+        document.getElementById('prevDate').addEventListener('click', () => {
+            this.navigateDate(-1);
+        });
+
+        document.getElementById('nextDate').addEventListener('click', () => {
+            this.navigateDate(1);
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            this.logout();
         });
     }
-    
-    showLoginModal() {
-        console.log('Showing login modal...');
-        const loginModal = document.getElementById('loginModal');
-        const app = document.getElementById('app');
-        
-        if (loginModal) {
-            loginModal.classList.remove('hidden');
-            console.log('Login modal shown');
-        } else {
-            console.error('Login modal not found!');
-        }
-        
-        if (app) {
-            app.classList.add('hidden');
-        }
-    }
-    
-    hideLoginModal() {
-        console.log('Hiding login modal...');
-        const loginModal = document.getElementById('loginModal');
-        const app = document.getElementById('app');
-        
-        if (loginModal) {
-            loginModal.classList.add('hidden');
-        }
-        
-        if (app) {
-            app.classList.remove('hidden');
-        }
-        
-        this.showLoadingSpinner();
-        setTimeout(() => {
-            this.hideLoadingSpinner();
-            this.initializeApp();
-        }, 1000);
-    }
-    
-    handleLogin(e) {
-        console.log('Handle login called');
-        e.preventDefault();
-        
-        const usernameEl = document.getElementById('username');
-        const passwordEl = document.getElementById('password');
-        
-        if (!usernameEl || !passwordEl) {
-            console.error('Username or password field not found!');
-            return;
-        }
-        
-        const username = usernameEl.value.trim();
-        const password = passwordEl.value.trim();
-        
-        console.log('Login attempt with:', username, password.length > 0 ? '[password entered]' : '[no password]');
-        
-        if (username === 'admin' && password === 'admin123') {
-            console.log('Valid admin credentials, logging in...');
+
+    handleLogin() {
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        // Support for 2 users
+        if ((username === 'admin1' && password === 'yourpassword1') || 
+            (username === 'admin2' && password === 'yourpassword2')) {
             this.isAdmin = true;
-            const currentUserElement = document.getElementById('currentUser');
-            if (currentUserElement) {
-                currentUserElement.textContent = 'Admin';
-            }
-            this.hideLoginModal();
-            this.showSuccess('Welcome Admin!');
-        } else if (username === '' || password === '') {
-            console.log('Empty credentials');
-            this.showError('Please enter username and password');
+            this.showApp();
+            this.currentUser = this.users[0]; // Set default user
+            document.getElementById('userSelect').value = this.currentUser;
+            this.renderCurrentView();
         } else {
-            console.log('Invalid credentials');
-            this.showError('Invalid credentials. Use admin/admin123 for admin access.');
+            this.showError('Invalid credentials. Please try again.');
         }
     }
-    
+
     handleViewOnly() {
-        console.log('Handle view only called');
         this.isAdmin = false;
-        const currentUserElement = document.getElementById('currentUser');
-        if (currentUserElement) {
-            currentUserElement.textContent = 'View Only';
-        }
-        this.hideLoginModal();
-        this.showSuccess('Entered view-only mode');
+        this.showApp();
+        this.currentUser = this.users[0]; // Set default user
+        document.getElementById('userSelect').value = this.currentUser;
+        this.renderCurrentView();
     }
-    
-    logout() {
-        console.log('Logging out...');
-        this.isAdmin = false;
-        this.currentUser = '';
-        
-        // Clear form fields
-        const username = document.getElementById('username');
-        const password = document.getElementById('password');
-        const userSelect = document.getElementById('userSelect');
-        
-        if (username) username.value = '';
-        if (password) password.value = '';
-        if (userSelect) userSelect.value = '';
-        
-        this.showLoginModal();
-    }
-    
-    initializeApp() {
-        console.log('Initializing app components...');
+
+    showApp() {
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+        document.querySelector('.user-role').textContent = this.isAdmin ? 'Admin' : 'View Only';
         this.populateUserSelector();
-        this.updateCurrentMonth();
-        this.updateFABVisibility();
-        this.showDashboard();
-        this.showSuccess('Application initialized successfully!');
+        this.updateAdminControls();
     }
-    
+
     populateUserSelector() {
         const select = document.getElementById('userSelect');
-        if (!select) return;
-        
-        select.innerHTML = '<option value="">Select User</option>';
-        this.users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user;
-            option.textContent = user;
-            select.appendChild(option);
-        });
-        console.log('User selector populated with', this.users.length, 'users');
+        select.innerHTML = this.users.map(user => 
+            `<option value="${user}">${user}</option>`
+        ).join('');
     }
-    
-    handleUserChange(e) {
-        this.currentUser = e.target.value;
-        console.log('User changed to:', this.currentUser);
-        if (this.currentUser) {
-            this.updateDashboard();
-            this.generateCalendar();
-            this.updateFABVisibility();
-            this.showSuccess(`Switched to ${this.currentUser}'s data`);
-        }
-    }
-    
-    showDashboard() {
-        console.log('Showing dashboard...');
-        this.currentView = 'dashboard';
-        this.hideAllViews();
-        const dashboardView = document.getElementById('dashboardView');
-        if (dashboardView) {
-            dashboardView.classList.remove('hidden');
-        }
-        this.updateDashboard();
-        this.generateCalendar();
-        this.updateFABVisibility();
-    }
-    
-    showDayDetail(date) {
-        console.log('Showing day detail for:', date);
-        this.currentView = 'dayDetail';
-        this.selectedDate = new Date(date);
-        this.hideAllViews();
-        const dayDetailView = document.getElementById('dayDetailView');
-        if (dayDetailView) {
-            dayDetailView.classList.remove('hidden');
-        }
-        this.updateDayDetail();
-        this.updateFABVisibility();
-    }
-    
-    showPaymentView() {
-        if (!this.isAdmin) {
-            this.showError('Admin access required for payment management.');
-            return;
-        }
-        console.log('Showing payment view...');
-        this.currentView = 'payment';
-        this.hideAllViews();
-        const paymentView = document.getElementById('paymentView');
-        if (paymentView) {
-            paymentView.classList.remove('hidden');
-        }
-        this.updatePaymentView();
-        this.closeFabMenu();
-        this.updateFABVisibility();
-    }
-    
-    hideAllViews() {
-        document.querySelectorAll('.view').forEach(view => {
-            view.classList.add('hidden');
+
+    updateAdminControls() {
+        const adminControls = document.querySelectorAll('.admin-only');
+        adminControls.forEach(control => {
+            control.style.display = this.isAdmin ? 'block' : 'none';
         });
     }
-    
-    updateCurrentMonth() {
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
-        const monthText = `${monthNames[this.currentDate.getMonth()]} ${this.currentDate.getFullYear()}`;
-        const currentMonthElement = document.getElementById('currentMonth');
-        if (currentMonthElement) {
-            currentMonthElement.textContent = monthText;
+
+    showError(message) {
+        // Create or update error message
+        let errorDiv = document.querySelector('.login-error');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'login-error';
+            document.querySelector('.login-form').appendChild(errorDiv);
+        }
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+
+        // Hide after 3 seconds
+        setTimeout(() => {
+            errorDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    switchView(view) {
+        this.currentView = view;
+
+        // Update navigation
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        document.querySelector(`[data-view="${view}"]`).classList.add('active');
+
+        this.renderCurrentView();
+    }
+
+    renderCurrentView() {
+        const content = document.getElementById('mainContent');
+
+        switch(this.currentView) {
+            case 'dashboard':
+                content.innerHTML = this.renderDashboard();
+                break;
+            case 'meals':
+                content.innerHTML = this.renderMealView();
+                this.bindMealToggles();
+                break;
+            case 'payments':
+                content.innerHTML = this.renderPaymentView();
+                this.bindPaymentControls();
+                break;
+            case 'analytics':
+                content.innerHTML = this.renderAnalytics();
+                break;
         }
     }
-    
-    changeMonth(direction) {
-        this.currentDate.setMonth(this.currentDate.getMonth() + direction);
-        this.updateCurrentMonth();
-        this.updateDashboard();
-        this.generateCalendar();
-    }
-    
-    updateDashboard() {
-        if (!this.currentUser) {
-            this.resetStats();
-            return;
-        }
-        
-        const stats = this.calculateMonthlyStats();
-        console.log('Dashboard stats:', stats);
-        
-        const mealsEatenElement = document.getElementById('mealsEaten');
-        const totalDueElement = document.getElementById('totalDue');
-        const amountPaidElement = document.getElementById('amountPaid');
-        const balanceElement = document.getElementById('balance');
-        
-        if (mealsEatenElement) mealsEatenElement.textContent = stats.mealsEaten;
-        if (totalDueElement) totalDueElement.textContent = `₹${stats.totalDue}`;
-        if (amountPaidElement) amountPaidElement.textContent = `₹${stats.amountPaid}`;
-        if (balanceElement) {
-            balanceElement.textContent = `₹${stats.balance}`;
-            balanceElement.style.color = stats.balance >= 0 ? 'var(--color-success)' : 'var(--color-error)';
-        }
-    }
-    
-    calculateMonthlyStats() {
+
+    renderDashboard() {
         const userData = this.mealData[this.currentUser] || {};
-        const payments = this.paymentData[this.currentUser] || [];
-        
-        let mealsEaten = 0;
-        const currentMonth = this.currentDate.getMonth();
-        const currentYear = this.currentDate.getFullYear();
-        
-        // Count meals for current month
-        Object.keys(userData).forEach(dateStr => {
-            const date = new Date(dateStr);
-            if (date.getMonth() === currentMonth && date.getFullYear() === currentYear) {
-                const meals = userData[dateStr];
-                if (meals.lunch) mealsEaten++;
-                if (meals.dinner) mealsEaten++;
-            }
-        });
-        
-        const totalDue = mealsEaten * this.mealRate;
-        
-        // Calculate total payments for current month
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
-        const currentMonthStr = `${monthNames[currentMonth]} ${currentYear}`;
-        
-        const amountPaid = payments
-            .filter(payment => payment.month === currentMonthStr)
-            .reduce((sum, payment) => sum + payment.amount, 0);
-        
-        const balance = amountPaid - totalDue;
-        
-        return { mealsEaten, totalDue, amountPaid, balance };
+        const paymentData = this.paymentData[this.currentUser] || { amount: 0 };
+
+        // Calculate monthly statistics
+        const currentMonth = new Date().toISOString().slice(0, 7); // "2025-08"
+        const monthlyMeals = Object.entries(userData)
+            .filter(([date]) => date.startsWith(currentMonth))
+            .reduce((acc, [date, meals]) => {
+                if (meals.lunch) acc.lunch++;
+                if (meals.dinner) acc.dinner++;
+                acc.total += (meals.lunch ? 1 : 0) + (meals.dinner ? 1 : 0);
+                return acc;
+            }, { lunch: 0, dinner: 0, total: 0 });
+
+        const totalCost = monthlyMeals.total * this.mealRate;
+        const paid = paymentData.amount || 0;
+        const balance = totalCost - paid;
+
+        return `
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🍽️</div>
+                    <div class="stat-content">
+                        <h3>Total Meals</h3>
+                        <div class="stat-value">${monthlyMeals.total}</div>
+                        <div class="stat-detail">Lunch: ${monthlyMeals.lunch} | Dinner: ${monthlyMeals.dinner}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <h3>Monthly Cost</h3>
+                        <div class="stat-value">₹${totalCost}</div>
+                        <div class="stat-detail">@ ₹45 per meal</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>Amount Paid</h3>
+                        <div class="stat-value">₹${paid}</div>
+                        <div class="stat-detail">${paymentData.date || 'No payment date'}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card ${balance > 0 ? 'stat-card--warning' : 'stat-card--success'}">
+                    <div class="stat-icon">${balance > 0 ? '⚠️' : '🎉'}</div>
+                    <div class="stat-content">
+                        <h3>Balance</h3>
+                        <div class="stat-value">₹${balance}</div>
+                        <div class="stat-detail">${balance > 0 ? 'Amount Due' : 'Fully Paid'}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                ${this.renderRecentActivity()}
+            </div>
+        `;
     }
-    
-    resetStats() {
-        const elements = {
-            mealsEaten: document.getElementById('mealsEaten'),
-            totalDue: document.getElementById('totalDue'),
-            amountPaid: document.getElementById('amountPaid'),
-            balance: document.getElementById('balance')
-        };
-        
-        if (elements.mealsEaten) elements.mealsEaten.textContent = '0';
-        if (elements.totalDue) elements.totalDue.textContent = '₹0';
-        if (elements.amountPaid) elements.amountPaid.textContent = '₹0';
-        if (elements.balance) elements.balance.textContent = '₹0';
-    }
-    
-    generateCalendar() {
-        const calendar = document.getElementById('calendar');
-        if (!calendar) return;
-        
-        calendar.innerHTML = '';
-        
-        if (!this.currentUser) {
-            const noUserMsg = document.createElement('div');
-            noUserMsg.textContent = 'Please select a user to view calendar';
-            noUserMsg.style.gridColumn = '1 / -1';
-            noUserMsg.style.textAlign = 'center';
-            noUserMsg.style.padding = 'var(--space-24)';
-            noUserMsg.style.color = 'var(--color-text-secondary)';
-            calendar.appendChild(noUserMsg);
-            return;
-        }
-        
-        // Add day headers
-        const dayHeaders = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        dayHeaders.forEach(day => {
-            const header = document.createElement('div');
-            header.textContent = day;
-            header.style.textAlign = 'center';
-            header.style.fontWeight = 'var(--font-weight-medium)';
-            header.style.padding = 'var(--space-8)';
-            header.style.color = 'var(--color-text-secondary)';
-            calendar.appendChild(header);
-        });
-        
-        const year = this.currentDate.getFullYear();
-        const month = this.currentDate.getMonth();
-        const firstDay = new Date(year, month, 1);
-        const startDate = new Date(firstDay);
-        startDate.setDate(startDate.getDate() - firstDay.getDay());
-        
-        const today = new Date();
+
+    renderRecentActivity() {
         const userData = this.mealData[this.currentUser] || {};
-        
-        for (let i = 0; i < 42; i++) {
-            const cellDate = new Date(startDate);
-            cellDate.setDate(startDate.getDate() + i);
-            
-            const dayCell = document.createElement('div');
-            dayCell.className = 'calendar-day';
-            dayCell.setAttribute('tabindex', '0');
-            dayCell.setAttribute('role', 'button');
-            dayCell.setAttribute('aria-label', `View meals for ${cellDate.toLocaleDateString()}`);
-            
-            const dayNumber = document.createElement('div');
-            dayNumber.className = 'calendar-day-number';
-            dayNumber.textContent = cellDate.getDate();
-            
-            // Check if it's today
-            if (cellDate.toDateString() === today.toDateString()) {
-                dayCell.classList.add('today');
-            }
-            
-            // Check if it's in current month
-            if (cellDate.getMonth() !== month) {
-                dayCell.style.opacity = '0.3';
-            }
-            
-            // Add meal indicators
-            const dateStr = this.formatDate(cellDate);
-            const meals = userData[dateStr];
-            if (meals) {
-                const mealsDiv = document.createElement('div');
-                mealsDiv.className = 'calendar-day-meals';
-                
-                if (meals.lunch) {
-                    const lunchIndicator = document.createElement('div');
-                    lunchIndicator.className = 'meal-indicator lunch';
-                    mealsDiv.appendChild(lunchIndicator);
-                }
-                
-                if (meals.dinner) {
-                    const dinnerIndicator = document.createElement('div');
-                    dinnerIndicator.className = 'meal-indicator dinner';
-                    mealsDiv.appendChild(dinnerIndicator);
-                }
-                
-                dayCell.appendChild(dayNumber);
-                dayCell.appendChild(mealsDiv);
-                dayCell.classList.add('has-meals');
-            } else {
-                dayCell.appendChild(dayNumber);
-            }
-            
-            // Add click handler
-            dayCell.addEventListener('click', () => {
-                if (cellDate.getMonth() === month) {
-                    this.showDayDetail(cellDate);
-                }
-            });
-            
-            // Add keyboard handler
-            dayCell.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    if (cellDate.getMonth() === month) {
-                        this.showDayDetail(cellDate);
-                    }
-                }
-            });
-            
-            calendar.appendChild(dayCell);
-        }
-        
-        console.log('Calendar generated for', this.currentUser);
+        const recent = Object.entries(userData)
+            .sort(([a], [b]) => new Date(b) - new Date(a))
+            .slice(0, 5);
+
+        return `
+            <div class="activity-list">
+                ${recent.map(([date, meals]) => `
+                    <div class="activity-item">
+                        <div class="activity-date">${new Date(date).toLocaleDateString()}</div>
+                        <div class="activity-details">
+                            <span class="meal-badge ${meals.lunch ? 'meal-badge--taken' : 'meal-badge--skipped'}">
+                                Lunch ${meals.lunch ? '✓' : '✗'}
+                            </span>
+                            <span class="meal-badge ${meals.dinner ? 'meal-badge--taken' : 'meal-badge--skipped'}">
+                                Dinner ${meals.dinner ? '✓' : '✗'}
+                            </span>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
     }
-    
-    updateDayDetail() {
-        const dateStr = this.formatDate(this.selectedDate);
-        const selectedDateElement = document.getElementById('selectedDate');
-        if (selectedDateElement) {
-            selectedDateElement.textContent = this.selectedDate.toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-            });
-        }
-        
+
+    renderMealView() {
+        const dateStr = this.selectedDate.toISOString().split('T')[0];
         const userData = this.mealData[this.currentUser] || {};
-        const meals = userData[dateStr] || { lunch: false, dinner: false };
-        
-        const lunchToggle = document.getElementById('lunchToggle');
-        const dinnerToggle = document.getElementById('dinnerToggle');
-        
-        if (lunchToggle) {
-            lunchToggle.checked = meals.lunch;
-            lunchToggle.disabled = !this.isAdmin;
-        }
-        
-        if (dinnerToggle) {
-            dinnerToggle.checked = meals.dinner;
-            dinnerToggle.disabled = !this.isAdmin;
-        }
-        
-        this.updateDaySummary();
+        const dayData = userData[dateStr] || { lunch: false, dinner: false };
+
+        return `
+            <div class="meal-view">
+                <div class="date-header">
+                    <button class="btn btn--outline" id="prevDate">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2>${this.selectedDate.toLocaleDateString('en-US', { 
+                        weekday: 'long', 
+                        year: 'numeric', 
+                        month: 'long', 
+                        day: 'numeric' 
+                    })}</h2>
+                    <button class="btn btn--outline" id="nextDate">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="meals-container">
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <h3><i class="fas fa-sun"></i> Lunch</h3>
+                            <span class="meal-cost">₹45</span>
+                        </div>
+                        <div class="meal-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${dayData.lunch ? 'checked' : ''} 
+                                       ${!this.isAdmin ? 'disabled' : ''} 
+                                       data-meal="lunch" data-date="${dateStr}">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">${dayData.lunch ? 'Eaten' : 'Not Eaten'}</span>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <h3><i class="fas fa-moon"></i> Dinner</h3>
+                            <span class="meal-cost">₹45</span>
+                        </div>
+                        <div class="meal-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" ${dayData.dinner ? 'checked' : ''} 
+                                       ${!this.isAdmin ? 'disabled' : ''} 
+                                       data-meal="dinner" data-date="${dateStr}">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">${dayData.dinner ? 'Eaten' : 'Not Eaten'}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-summary">
+                    <h4>Day Summary</h4>
+                    <p>Meals taken: ${(dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)}/2</p>
+                    <p>Daily cost: ₹${((dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)) * this.mealRate}</p>
+                </div>
+            </div>
+        `;
     }
-    
-    handleMealToggle(e, mealType) {
-        if (!this.isAdmin) {
-            e.preventDefault();
-            this.showError('Admin access required to modify meal data.');
-            return;
-        }
-        
-        const dateStr = this.formatDate(this.selectedDate);
-        
+
+    renderPaymentView() {
+        const paymentData = this.paymentData[this.currentUser] || { amount: 0, date: '', month: 'August 2025' };
+        const userData = this.mealData[this.currentUser] || {};
+
+        // Calculate total meals and cost for current month
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        const monthlyMeals = Object.entries(userData)
+            .filter(([date]) => date.startsWith(currentMonth))
+            .reduce((total, [date, meals]) => {
+                return total + (meals.lunch ? 1 : 0) + (meals.dinner ? 1 : 0);
+            }, 0);
+
+        const totalCost = monthlyMeals * this.mealRate;
+        const balance = totalCost - paymentData.amount;
+
+        return `
+            <div class="payment-view">
+                <div class="payment-summary">
+                    <h3>August 2025 - Payment Summary</h3>
+                    <div class="summary-grid">
+                        <div class="summary-item">
+                            <label>Total Meals Taken:</label>
+                            <span>${monthlyMeals}</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Total Amount Due:</label>
+                            <span>₹${totalCost}</span>
+                        </div>
+                        <div class="summary-item">
+                            <label>Amount Paid:</label>
+                            <span>₹${paymentData.amount}</span>
+                        </div>
+                        <div class="summary-item ${balance > 0 ? 'text-warning' : 'text-success'}">
+                            <label>Balance:</label>
+                            <span>₹${balance}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${this.isAdmin ? `
+                <div class="payment-form admin-only">
+                    <h4>Record Payment</h4>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="paymentAmount">Payment Amount (₹)</label>
+                            <input type="number" id="paymentAmount" class="form-control" 
+                                   placeholder="Enter amount" min="0" step="1">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentDate">Payment Date</label>
+                            <input type="date" id="paymentDate" class="form-control" 
+                                   value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                        <button type="submit" class="btn btn--primary">
+                            <i class="fas fa-save"></i> Record Payment
+                        </button>
+                    </form>
+                </div>
+                ` : ''}
+
+                <div class="payment-history">
+                    <h4>Payment History</h4>
+                    ${paymentData.date ? `
+                        <div class="payment-record">
+                            <div class="payment-date">${new Date(paymentData.date).toLocaleDateString()}</div>
+                            <div class="payment-amount">₹${paymentData.amount}</div>
+                        </div>
+                    ` : '<p class="text-muted">No payments recorded</p>'}
+                </div>
+            </div>
+        `;
+    }
+
+    renderAnalytics() {
+        const userData = this.mealData[this.currentUser] || {};
+        const currentMonth = new Date().toISOString().slice(0, 7);
+
+        // Calculate weekly statistics
+        const weeklyStats = this.calculateWeeklyStats(userData, currentMonth);
+        const mealTypeStats = this.calculateMealTypeStats(userData, currentMonth);
+
+        return `
+            <div class="analytics-view">
+                <h3>Analytics for ${this.currentUser}</h3>
+
+                <div class="analytics-grid">
+                    <div class="chart-container">
+                        <h4>Weekly Meal Pattern</h4>
+                        <div class="week-chart">
+                            ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, index) => `
+                                <div class="day-column">
+                                    <div class="day-label">${day}</div>
+                                    <div class="meal-bars">
+                                        <div class="meal-bar lunch-bar" 
+                                             style="height: ${(weeklyStats[index]?.lunch || 0) * 20}px"
+                                             title="Lunch: ${weeklyStats[index]?.lunch || 0}"></div>
+                                        <div class="meal-bar dinner-bar" 
+                                             style="height: ${(weeklyStats[index]?.dinner || 0) * 20}px"
+                                             title="Dinner: ${weeklyStats[index]?.dinner || 0}"></div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="chart-legend">
+                            <span class="legend-item"><span class="legend-color lunch-color"></span> Lunch</span>
+                            <span class="legend-item"><span class="legend-color dinner-color"></span> Dinner</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-container">
+                        <h4>Monthly Statistics</h4>
+                        <div class="stat-item">
+                            <span class="stat-label">Lunch Attendance:</span>
+                            <span class="stat-value">${mealTypeStats.lunch}/${mealTypeStats.totalDays}</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.lunch/mealTypeStats.totalDays*100)}%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Dinner Attendance:</span>
+                            <span class="stat-value">${mealTypeStats.dinner}/${mealTypeStats.totalDays}</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.dinner/mealTypeStats.totalDays*100)}%)</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Overall Attendance:</span>
+                            <span class="stat-value">${mealTypeStats.total}/${mealTypeStats.totalDays * 2}</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.total/(mealTypeStats.totalDays*2)*100)}%)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    calculateWeeklyStats(userData, month) {
+        const weeklyStats = Array(7).fill(0).map(() => ({ lunch: 0, dinner: 0 }));
+
+        Object.entries(userData)
+            .filter(([date]) => date.startsWith(month))
+            .forEach(([date, meals]) => {
+                const dayOfWeek = new Date(date).getDay();
+                const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert Sunday=0 to index 6
+                if (meals.lunch) weeklyStats[index].lunch++;
+                if (meals.dinner) weeklyStats[index].dinner++;
+            });
+
+        return weeklyStats;
+    }
+
+    calculateMealTypeStats(userData, month) {
+        const monthData = Object.entries(userData)
+            .filter(([date]) => date.startsWith(month));
+
+        const totalDays = monthData.length;
+        const lunch = monthData.filter(([date, meals]) => meals.lunch).length;
+        const dinner = monthData.filter(([date, meals]) => meals.dinner).length;
+        const total = lunch + dinner;
+
+        return { totalDays, lunch, dinner, total };
+    }
+
+    bindMealToggles() {
+        document.querySelectorAll('input[data-meal]').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                if (!this.isAdmin) return;
+
+                const meal = e.target.dataset.meal;
+                const date = e.target.dataset.date;
+                const isChecked = e.target.checked;
+
+                this.updateMealStatus(date, meal, isChecked);
+                this.updateToggleLabel(e.target);
+            });
+        });
+    }
+
+    updateMealStatus(date, meal, status) {
         if (!this.mealData[this.currentUser]) {
             this.mealData[this.currentUser] = {};
         }
-        
-        if (!this.mealData[this.currentUser][dateStr]) {
-            this.mealData[this.currentUser][dateStr] = { lunch: false, dinner: false };
+        if (!this.mealData[this.currentUser][date]) {
+            this.mealData[this.currentUser][date] = { lunch: false, dinner: false };
         }
-        
-        this.mealData[this.currentUser][dateStr][mealType] = e.target.checked;
-        this.updateDaySummary();
-        
-        // Update dashboard stats if viewing current month
-        if (this.selectedDate.getMonth() === this.currentDate.getMonth() && 
-            this.selectedDate.getFullYear() === this.currentDate.getFullYear()) {
-            this.updateDashboard();
+
+        this.mealData[this.currentUser][date][meal] = status;
+
+        // Update day summary
+        const dayData = this.mealData[this.currentUser][date];
+        const mealsCount = (dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0);
+        const summaryElement = document.querySelector('.day-summary');
+        if (summaryElement) {
+            summaryElement.innerHTML = `
+                <h4>Day Summary</h4>
+                <p>Meals taken: ${mealsCount}/2</p>
+                <p>Daily cost: ₹${mealsCount * this.mealRate}</p>
+            `;
         }
-        
-        // Show success message
-        const mealName = mealType.charAt(0).toUpperCase() + mealType.slice(1);
-        const action = e.target.checked ? 'marked as eaten' : 'unmarked';
-        this.showSuccess(`${mealName} ${action} successfully!`);
     }
-    
-    updateDaySummary() {
-        const dateStr = this.formatDate(this.selectedDate);
-        const userData = this.mealData[this.currentUser] || {};
-        const meals = userData[dateStr] || { lunch: false, dinner: false };
-        
-        let mealCount = 0;
-        if (meals.lunch) mealCount++;
-        if (meals.dinner) mealCount++;
-        
-        const dayCost = mealCount * this.mealRate;
-        
-        const dayMealCountElement = document.getElementById('dayMealCount');
-        const dayCostElement = document.getElementById('dayCost');
-        
-        if (dayMealCountElement) dayMealCountElement.textContent = mealCount;
-        if (dayCostElement) dayCostElement.textContent = `₹${dayCost}`;
+
+    updateToggleLabel(toggle) {
+        const label = toggle.closest('.meal-toggle').querySelector('.toggle-label');
+        label.textContent = toggle.checked ? 'Eaten' : 'Not Eaten';
     }
-    
-    updatePaymentView() {
+
+    bindPaymentControls() {
         const form = document.getElementById('paymentForm');
-        if (form) form.reset();
-        
-        // Set default date to today
-        const paymentDate = document.getElementById('paymentDate');
-        if (paymentDate) {
-            paymentDate.value = new Date().toISOString().split('T')[0];
+        if (form) {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                this.recordPayment();
+            });
         }
-        
-        this.updatePaymentList();
     }
-    
-    handlePaymentSubmit(e) {
-        e.preventDefault();
-        
-        if (!this.isAdmin) {
-            this.showError('Admin access required for payment management.');
+
+    recordPayment() {
+        const amount = parseInt(document.getElementById('paymentAmount').value);
+        const date = document.getElementById('paymentDate').value;
+
+        if (!amount || amount <= 0) {
+            alert('Please enter a valid payment amount');
             return;
         }
-        
-        if (!this.currentUser) {
-            this.showError('Please select a user first.');
-            return;
-        }
-        
-        const amountElement = document.getElementById('paymentAmount');
-        const dateElement = document.getElementById('paymentDate');
-        
-        if (!amountElement || !dateElement) return;
-        
-        const amount = parseInt(amountElement.value);
-        const date = dateElement.value;
-        
-        if (!amount || !date) {
-            this.showError('Please fill in all fields.');
-            return;
-        }
-        
-        const paymentDate = new Date(date);
-        const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-            'July', 'August', 'September', 'October', 'November', 'December'];
-        const month = `${monthNames[paymentDate.getMonth()]} ${paymentDate.getFullYear()}`;
-        
+
         if (!this.paymentData[this.currentUser]) {
-            this.paymentData[this.currentUser] = [];
+            this.paymentData[this.currentUser] = { amount: 0, date: '', month: 'August 2025' };
         }
-        
-        this.paymentData[this.currentUser].push({
-            amount: amount,
-            date: date,
-            month: month
-        });
-        
-        this.showSuccess('Payment recorded successfully!');
-        this.updatePaymentList();
-        this.updateDashboard();
-        
-        // Reset form
-        const form = document.getElementById('paymentForm');
-        if (form) form.reset();
-        if (dateElement) dateElement.value = new Date().toISOString().split('T')[0];
-    }
-    
-    updatePaymentList() {
-        const list = document.getElementById('paymentList');
-        if (!list) return;
-        
-        list.innerHTML = '';
-        
-        if (!this.currentUser) {
-            const noUserMsg = document.createElement('div');
-            noUserMsg.textContent = 'Please select a user to view payments';
-            noUserMsg.style.textAlign = 'center';
-            noUserMsg.style.padding = 'var(--space-24)';
-            noUserMsg.style.color = 'var(--color-text-secondary)';
-            list.appendChild(noUserMsg);
-            return;
-        }
-        
-        const payments = this.paymentData[this.currentUser] || [];
-        
-        if (payments.length === 0) {
-            const noPayments = document.createElement('div');
-            noPayments.textContent = 'No payments recorded yet';
-            noPayments.style.textAlign = 'center';
-            noPayments.style.padding = 'var(--space-24)';
-            noPayments.style.color = 'var(--color-text-secondary)';
-            list.appendChild(noPayments);
-            return;
-        }
-        
-        // Sort payments by date (most recent first)
-        payments.sort((a, b) => new Date(b.date) - new Date(a.date));
-        
-        payments.forEach(payment => {
-            const item = document.createElement('div');
-            item.className = 'payment-item';
-            
-            const info = document.createElement('div');
-            info.className = 'payment-item-info';
-            
-            const date = document.createElement('div');
-            date.className = 'payment-item-date';
-            date.textContent = new Date(payment.date).toLocaleDateString();
-            
-            const month = document.createElement('div');
-            month.textContent = `For ${payment.month}`;
-            month.style.fontSize = 'var(--font-size-xs)';
-            month.style.color = 'var(--color-text-secondary)';
-            
-            info.appendChild(date);
-            info.appendChild(month);
-            
-            const amount = document.createElement('div');
-            amount.className = 'payment-item-amount';
-            amount.textContent = `₹${payment.amount}`;
-            
-            item.appendChild(info);
-            item.appendChild(amount);
-            list.appendChild(item);
-        });
-    }
-    
-    updateFABVisibility() {
-        const fab = document.getElementById('fab');
-        if (!fab) return;
-        
-        if (this.isAdmin && this.currentView !== 'payment' && this.currentUser) {
-            fab.classList.remove('hidden');
-        } else {
-            fab.classList.add('hidden');
-        }
-    }
-    
-    toggleFabMenu() {
-        const menu = document.getElementById('fabMenu');
-        if (menu) {
-            menu.classList.toggle('hidden');
-        }
-    }
-    
-    closeFabMenu() {
-        const menu = document.getElementById('fabMenu');
-        if (menu) {
-            menu.classList.add('hidden');
-        }
-    }
-    
-    formatDate(date) {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-    
-    showLoadingSpinner() {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) spinner.classList.remove('hidden');
-    }
-    
-    hideLoadingSpinner() {
-        const spinner = document.getElementById('loadingSpinner');
-        if (spinner) spinner.classList.add('hidden');
-    }
-    
-    showError(message) {
-        this.showNotification(message, 'error');
-    }
-    
-    showSuccess(message) {
-        this.showNotification(message, 'success');
-    }
-    
-    showNotification(message, type) {
-        // Remove existing notifications
-        document.querySelectorAll('.notification').forEach(n => n.remove());
-        
-        const notification = document.createElement('div');
-        notification.className = 'notification';
-        notification.style.position = 'fixed';
-        notification.style.top = '20px';
-        notification.style.right = '20px';
-        notification.style.background = type === 'error' ? 'var(--color-error)' : 'var(--color-success)';
-        notification.style.color = 'white';
-        notification.style.padding = 'var(--space-16)';
-        notification.style.borderRadius = 'var(--radius-base)';
-        notification.style.boxShadow = 'var(--shadow-lg)';
-        notification.style.zIndex = '3000';
-        notification.style.animation = 'slideInDown 0.3s var(--ease-standard)';
-        notification.style.maxWidth = '300px';
-        notification.style.wordWrap = 'break-word';
-        
-        const icon = type === 'error' ? 'fas fa-exclamation-circle' : 'fas fa-check-circle';
-        notification.innerHTML = `<i class="${icon}"></i> ${message}`;
-        
-        document.body.appendChild(notification);
-        
+
+        this.paymentData[this.currentUser].amount += amount;
+        this.paymentData[this.currentUser].date = date;
+
+        // Show success message
+        this.showSuccessMessage('Payment recorded successfully!');
+
+        // Refresh payment view
         setTimeout(() => {
-            notification.style.animation = 'slideInUp 0.3s var(--ease-standard) reverse';
-            setTimeout(() => notification.remove(), 300);
+            this.renderCurrentView();
+        }, 1000);
+    }
+
+    showSuccessMessage(message) {
+        const successDiv = document.createElement('div');
+        successDiv.className = 'success-message';
+        successDiv.textContent = message;
+        successDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 5px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        `;
+
+        document.body.appendChild(successDiv);
+
+        setTimeout(() => {
+            successDiv.remove();
         }, 3000);
+    }
+
+    navigateDate(direction) {
+        this.selectedDate.setDate(this.selectedDate.getDate() + direction);
+        this.renderCurrentView();
+    }
+
+    updateDateTime() {
+        const now = new Date();
+        document.getElementById('currentDateTime').textContent = now.toLocaleString();
+    }
+
+    logout() {
+        this.isAdmin = false;
+        this.currentUser = '';
+        this.currentView = 'dashboard';
+        document.getElementById('app').classList.add('hidden');
+        document.getElementById('loginModal').style.display = 'flex';
+
+        // Clear login form
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+
+        // Hide any error messages
+        const errorDiv = document.querySelector('.login-error');
+        if (errorDiv) {
+            errorDiv.style.display = 'none';
+        }
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM loaded, initializing app...');
-    const app = new FoodServiceApp();
-    app.init();
-    
-    // Make app globally accessible for debugging
-    window.foodServiceApp = app;
+    window.app = new FoodServiceApp();
+});
+
+// Support for 2 users - Enhanced Authentication System
+// This section provides additional authentication methods and user management
+
+class AuthManager {
+    constructor() {
+        this.users = {
+            'admin1': {
+                password: 'yourpassword1',
+                name: 'Admin User 1',
+                role: 'admin',
+                permissions: ['view', 'edit', 'delete', 'manage_payments']
+            },
+            'admin2': {
+                password: 'yourpassword2', 
+                name: 'Admin User 2',
+                role: 'admin',
+                permissions: ['view', 'edit', 'delete', 'manage_payments']
+            }
+        };
+        this.currentUser = null;
+        this.sessionTimeout = 30 * 60 * 1000; // 30 minutes
+        this.sessionTimer = null;
+    }
+
+    authenticate(username, password) {
+        const user = this.users[username];
+        if (user && user.password === password) {
+            this.currentUser = {
+                username: username,
+                name: user.name,
+                role: user.role,
+                permissions: user.permissions,
+                loginTime: new Date()
+            };
+            this.startSessionTimer();
+            return true;
+        }
+        return false;
+    }
+
+    hasPermission(permission) {
+        return this.currentUser && this.currentUser.permissions.includes(permission);
+    }
+
+    startSessionTimer() {
+        if (this.sessionTimer) {
+            clearTimeout(this.sessionTimer);
+        }
+
+        this.sessionTimer = setTimeout(() => {
+            this.logout();
+            alert('Session expired. Please login again.');
+        }, this.sessionTimeout);
+    }
+
+    refreshSession() {
+        if (this.currentUser) {
+            this.startSessionTimer();
+        }
+    }
+
+    logout() {
+        this.currentUser = null;
+        if (this.sessionTimer) {
+            clearTimeout(this.sessionTimer);
+        }
+
+        // Trigger app logout
+        if (window.app) {
+            window.app.logout();
+        }
+    }
+
+    getCurrentUser() {
+        return this.currentUser;
+    }
+
+    isLoggedIn() {
+        return this.currentUser !== null;
+    }
+
+    // Method to change password (admin function)
+    changePassword(username, oldPassword, newPassword) {
+        const user = this.users[username];
+        if (user && user.password === oldPassword) {
+            user.password = newPassword;
+            return true;
+        }
+        return false;
+    }
+
+    // Method to add new user (if needed in future)
+    addUser(username, password, name, role = 'admin') {
+        if (this.users[username]) {
+            return false; // User already exists
+        }
+
+        this.users[username] = {
+            password: password,
+            name: name,
+            role: role,
+            permissions: role === 'admin' ? ['view', 'edit', 'delete', 'manage_payments'] : ['view']
+        };
+        return true;
+    }
+}
+
+// Initialize Auth Manager
+window.authManager = new AuthManager();
+
+// Auto-refresh session on user activity
+document.addEventListener('click', () => {
+    if (window.authManager.isLoggedIn()) {
+        window.authManager.refreshSession();
+    }
+});
+
+document.addEventListener('keypress', () => {
+    if (window.authManager.isLoggedIn()) {
+        window.authManager.refreshSession();
+    }
 });
