@@ -1,19 +1,20 @@
-// AM 2 PM Food Service - Application Logic
+// AM 2 PM Food Service - Personal Account System
 class FoodServiceApp {
     constructor() {
         this.isAdmin = false;
         this.currentUser = '';
+        this.loggedInUser = ''; // Who is actually logged in
         this.currentDate = new Date();
         this.selectedDate = new Date();
         this.currentView = 'dashboard';
 
-        // Updated users: Abid Hossain and Ahsan Ansari
+        // User accounts - Abid Hossain and Ahsan Ansari
         this.users = ["Abid Hossain", "Ahsan Ansari"];
         this.monthlyRate = 2700;
         this.dailyRate = 90;
         this.mealRate = 45;
 
-        // Initialize sample meal data for Abid and Ahsan
+        // Personal meal data for each user
         this.mealData = {
             "Abid Hossain": {
                 "2025-08-27": { lunch: true, dinner: false },
@@ -47,7 +48,7 @@ class FoodServiceApp {
             }
         };
 
-        // Initialize sample payment data for Abid and Ahsan
+        // Personal payment data for each user
         this.paymentData = {
             "Abid Hossain": { amount: 1500, date: "2025-08-01", month: "August 2025" },
             "Ahsan Ansari": { amount: 2200, date: "2025-08-05", month: "August 2025" }
@@ -74,10 +75,9 @@ class FoodServiceApp {
             this.handleViewOnly();
         });
 
-        // User selector
+        // User selector (only visible in view-only mode)
         document.getElementById('userSelect').addEventListener('change', (e) => {
             this.currentUser = e.target.value;
-            this.updateCurrentUserLabel();
             this.renderCurrentView();
         });
 
@@ -108,40 +108,102 @@ class FoodServiceApp {
         const username = document.getElementById('username').value.trim();
         const password = document.getElementById('password').value.trim();
 
-        console.log('Login attempt:', username); // For debugging
+        console.log('Login attempt:', username);
 
-        // Support for 2 admin users
-        if ((username === 'AbidHossain' && password === 'Abid@786') || 
-            (username === 'Ehsan Ansari' && password === 'Ehsan@786')) {
-            console.log('Admin login successful');
+        // Personal account login for Abid Hossain
+        if (username === 'AbidHossain' && password === 'Abid@786') {
+            console.log('Abid Hossain logged in');
             this.isAdmin = true;
-            this.showApp();
-            this.currentUser = this.users[0]; // Set default user to Abid Hossain
-            document.getElementById('userSelect').value = this.currentUser;
-            this.updateCurrentUserLabel();
-            this.renderCurrentView();
-        } else {
-            console.log('Login failed');
-            this.showError('Invalid credentials. Please try again.');
+            this.loggedInUser = 'Abid Hossain';
+            this.currentUser = 'Abid Hossain';
+            this.showPersonalApp();
+            return;
         }
+
+        // Personal account login for Ahsan Ansari
+        if (username === 'AhsanAnsari' && password === 'Ahsan@786') {
+            console.log('Ahsan Ansari logged in');
+            this.isAdmin = true;
+            this.loggedInUser = 'Ahsan Ansari';
+            this.currentUser = 'Ahsan Ansari';
+            this.showPersonalApp();
+            return;
+        }
+
+        // Login failed
+        console.log('Login failed');
+        this.showError('Invalid credentials. Please try again.');
     }
 
     handleViewOnly() {
         console.log('View-only mode activated');
         this.isAdmin = false;
-        this.showApp();
-        this.currentUser = this.users[0]; // Set default user to Abid Hossain
-        document.getElementById('userSelect').value = this.currentUser;
-        this.updateCurrentUserLabel();
+        this.loggedInUser = '';
+        this.currentUser = this.users[0]; // Default to first user
+        this.showViewOnlyApp();
+    }
+
+    showPersonalApp() {
+        // Hide login modal
+        document.getElementById('loginModal').style.display = 'none';
+        document.getElementById('app').classList.remove('hidden');
+
+        // Set role display
+        document.querySelector('.user-role').textContent = this.loggedInUser;
+
+        // Hide user selector for personal accounts
+        document.getElementById('userSelect').style.display = 'none';
+        document.querySelector('.user-selector-label').style.display = 'none';
+
+        // Show welcome message
+        this.showWelcomeMessage();
+
         this.renderCurrentView();
     }
 
-    showApp() {
+    showViewOnlyApp() {
+        // Hide login modal
         document.getElementById('loginModal').style.display = 'none';
         document.getElementById('app').classList.remove('hidden');
-        document.querySelector('.user-role').textContent = this.isAdmin ? 'Admin' : 'View Only';
+
+        // Set role display
+        document.querySelector('.user-role').textContent = 'View Only';
+
+        // Show user selector for view-only mode
+        document.getElementById('userSelect').style.display = 'block';
+        document.querySelector('.user-selector-label').style.display = 'block';
         this.populateUserSelector();
+
         this.updateAdminControls();
+        this.renderCurrentView();
+    }
+
+    showWelcomeMessage() {
+        const welcomeDiv = document.createElement('div');
+        welcomeDiv.className = 'welcome-message';
+        welcomeDiv.innerHTML = `
+            <h3>Welcome, ${this.loggedInUser}!</h3>
+            <p>You can now manage your meal tracking and payments.</p>
+        `;
+        welcomeDiv.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        `;
+
+        document.body.appendChild(welcomeDiv);
+
+        setTimeout(() => {
+            welcomeDiv.remove();
+        }, 4000);
     }
 
     populateUserSelector() {
@@ -151,28 +213,21 @@ class FoodServiceApp {
         ).join('');
     }
 
-    updateCurrentUserLabel() {
-        const label = document.getElementById('currentUserLabel');
-        if (label) {
-            label.textContent = this.currentUser;
-        }
-    }
-
     updateAdminControls() {
-        const adminControls = document.querySelectorAll('.admin-only');
-        adminControls.forEach(control => {
-            control.style.display = this.isAdmin ? 'block' : 'none';
-        });
-
-        // Disable meal toggles for view-only users
+        // In personal mode, user always has edit access to their own data
+        // In view-only mode, no edit access
         const mealToggles = document.querySelectorAll('input[data-meal]');
         mealToggles.forEach(toggle => {
             toggle.disabled = !this.isAdmin;
         });
+
+        const adminControls = document.querySelectorAll('.admin-only');
+        adminControls.forEach(control => {
+            control.style.display = this.isAdmin ? 'block' : 'none';
+        });
     }
 
     showError(message) {
-        // Create or update error message
         let errorDiv = document.querySelector('.login-error');
         if (!errorDiv) {
             errorDiv = document.createElement('div');
@@ -191,7 +246,6 @@ class FoodServiceApp {
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
 
-        // Hide after 3 seconds
         setTimeout(() => {
             errorDiv.style.display = 'none';
         }, 3000);
@@ -229,7 +283,6 @@ class FoodServiceApp {
                 break;
         }
 
-        // Update admin controls after rendering
         this.updateAdminControls();
     }
 
@@ -238,7 +291,7 @@ class FoodServiceApp {
         const paymentData = this.paymentData[this.currentUser] || { amount: 0 };
 
         // Calculate monthly statistics
-        const currentMonth = new Date().toISOString().slice(0, 7); // "2025-08"
+        const currentMonth = new Date().toISOString().slice(0, 7);
         const monthlyMeals = Object.entries(userData)
             .filter(([date]) => date.startsWith(currentMonth))
             .reduce((acc, [date, meals]) => {
@@ -252,10 +305,12 @@ class FoodServiceApp {
         const paid = paymentData.amount || 0;
         const balance = totalCost - paid;
 
+        const isPersonalAccount = this.loggedInUser === this.currentUser;
+
         return `
-            <div class="viewing-info">
-                <h2>Dashboard - ${this.currentUser}</h2>
-                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            <div class="personal-header">
+                <h1>${isPersonalAccount ? 'My Dashboard' : `${this.currentUser}'s Dashboard`}</h1>
+                <p class="account-type">${isPersonalAccount ? 'Personal Account' : 'Viewing Mode'}</p>
             </div>
 
             <div class="dashboard-grid">
@@ -297,7 +352,7 @@ class FoodServiceApp {
             </div>
 
             <div class="recent-activity">
-                <h3>Recent Activity - ${this.currentUser}</h3>
+                <h3>Recent Activity</h3>
                 ${this.renderRecentActivity()}
             </div>
         `;
@@ -332,11 +387,12 @@ class FoodServiceApp {
         const dateStr = this.selectedDate.toISOString().split('T')[0];
         const userData = this.mealData[this.currentUser] || {};
         const dayData = userData[dateStr] || { lunch: false, dinner: false };
+        const isPersonalAccount = this.loggedInUser === this.currentUser;
 
         return `
-            <div class="viewing-info">
-                <h2>Meals - ${this.currentUser}</h2>
-                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            <div class="personal-header">
+                <h1>${isPersonalAccount ? 'My Meals' : `${this.currentUser}'s Meals`}</h1>
+                <p class="account-type">${isPersonalAccount ? 'Personal Account' : 'Viewing Mode'}</p>
             </div>
 
             <div class="meal-view">
@@ -392,7 +448,7 @@ class FoodServiceApp {
                 </div>
 
                 <div class="day-summary">
-                    <h4>Day Summary for ${this.currentUser}</h4>
+                    <h4>Day Summary</h4>
                     <p>Meals taken: ${(dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)}/2</p>
                     <p>Daily cost: ₹${((dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)) * this.mealRate}</p>
                 </div>
@@ -403,8 +459,8 @@ class FoodServiceApp {
     renderPaymentView() {
         const paymentData = this.paymentData[this.currentUser] || { amount: 0, date: '', month: 'August 2025' };
         const userData = this.mealData[this.currentUser] || {};
+        const isPersonalAccount = this.loggedInUser === this.currentUser;
 
-        // Calculate total meals and cost for current month
         const currentMonth = new Date().toISOString().slice(0, 7);
         const monthlyMeals = Object.entries(userData)
             .filter(([date]) => date.startsWith(currentMonth))
@@ -416,9 +472,9 @@ class FoodServiceApp {
         const balance = totalCost - paymentData.amount;
 
         return `
-            <div class="viewing-info">
-                <h2>Payments - ${this.currentUser}</h2>
-                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            <div class="personal-header">
+                <h1>${isPersonalAccount ? 'My Payments' : `${this.currentUser}'s Payments`}</h1>
+                <p class="account-type">${isPersonalAccount ? 'Personal Account' : 'Viewing Mode'}</p>
             </div>
 
             <div class="payment-view">
@@ -446,7 +502,7 @@ class FoodServiceApp {
 
                 ${this.isAdmin ? `
                 <div class="payment-form admin-only">
-                    <h4>Record Payment for ${this.currentUser}</h4>
+                    <h4>Record Payment</h4>
                     <form id="paymentForm">
                         <div class="form-group">
                             <label for="paymentAmount">Payment Amount (₹)</label>
@@ -463,7 +519,7 @@ class FoodServiceApp {
                         </button>
                     </form>
                 </div>
-                ` : '<p class="text-muted">Payment recording is only available to admins.</p>'}
+                ` : '<p class="text-muted">Payment recording is only available for personal accounts.</p>'}
 
                 <div class="payment-history">
                     <h4>Payment History</h4>
@@ -471,7 +527,6 @@ class FoodServiceApp {
                         <div class="payment-record">
                             <div class="payment-date">${new Date(paymentData.date).toLocaleDateString()}</div>
                             <div class="payment-amount">₹${paymentData.amount}</div>
-                            <div class="payment-user">Payment by/for: ${this.currentUser}</div>
                         </div>
                     ` : '<p class="text-muted">No payments recorded</p>'}
                 </div>
@@ -482,15 +537,15 @@ class FoodServiceApp {
     renderAnalytics() {
         const userData = this.mealData[this.currentUser] || {};
         const currentMonth = new Date().toISOString().slice(0, 7);
+        const isPersonalAccount = this.loggedInUser === this.currentUser;
 
-        // Calculate weekly statistics
         const weeklyStats = this.calculateWeeklyStats(userData, currentMonth);
         const mealTypeStats = this.calculateMealTypeStats(userData, currentMonth);
 
         return `
-            <div class="viewing-info">
-                <h2>Analytics - ${this.currentUser}</h2>
-                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            <div class="personal-header">
+                <h1>${isPersonalAccount ? 'My Analytics' : `${this.currentUser}'s Analytics`}</h1>
+                <p class="account-type">${isPersonalAccount ? 'Personal Account' : 'Viewing Mode'}</p>
             </div>
 
             <div class="analytics-view">
@@ -548,7 +603,7 @@ class FoodServiceApp {
             .filter(([date]) => date.startsWith(month))
             .forEach(([date, meals]) => {
                 const dayOfWeek = new Date(date).getDay();
-                const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Convert Sunday=0 to index 6
+                const index = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
                 if (meals.lunch) weeklyStats[index].lunch++;
                 if (meals.dinner) weeklyStats[index].dinner++;
             });
@@ -593,13 +648,12 @@ class FoodServiceApp {
 
         this.mealData[this.currentUser][date][meal] = status;
 
-        // Update day summary
         const dayData = this.mealData[this.currentUser][date];
         const mealsCount = (dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0);
         const summaryElement = document.querySelector('.day-summary');
         if (summaryElement) {
             summaryElement.innerHTML = `
-                <h4>Day Summary for ${this.currentUser}</h4>
+                <h4>Day Summary</h4>
                 <p>Meals taken: ${mealsCount}/2</p>
                 <p>Daily cost: ₹${mealsCount * this.mealRate}</p>
             `;
@@ -637,13 +691,10 @@ class FoodServiceApp {
         this.paymentData[this.currentUser].amount += amount;
         this.paymentData[this.currentUser].date = date;
 
-        // Show success message
-        this.showSuccessMessage(`Payment of ₹${amount} recorded for ${this.currentUser}!`);
+        this.showSuccessMessage(`Payment of ₹${amount} recorded successfully!`);
 
-        // Clear form
         document.getElementById('paymentAmount').value = '';
 
-        // Refresh payment view
         setTimeout(() => {
             this.renderCurrentView();
         }, 1000);
@@ -689,15 +740,14 @@ class FoodServiceApp {
     logout() {
         this.isAdmin = false;
         this.currentUser = '';
+        this.loggedInUser = '';
         this.currentView = 'dashboard';
         document.getElementById('app').classList.add('hidden');
         document.getElementById('loginModal').style.display = 'flex';
 
-        // Clear login form
         document.getElementById('username').value = '';
         document.getElementById('password').value = '';
 
-        // Hide any error messages
         const errorDiv = document.querySelector('.login-error');
         if (errorDiv) {
             errorDiv.style.display = 'none';
@@ -711,47 +761,65 @@ class FoodServiceApp {
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FoodServiceApp();
     console.log('AM 2 PM Food Service App initialized');
-    console.log('Available users:', window.app.users);
 });
 
-// Add some CSS for the viewing info
-const additionalCSS = `
-    .viewing-info {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
+// Add custom CSS for personal accounts
+const personalAccountCSS = `
+    .personal-header {
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255,255,255,0.2);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
         text-align: center;
     }
 
-    .viewing-label {
-        color: rgba(255, 255, 255, 0.9);
-        font-size: 16px;
-        margin: 10px 0 0 0;
-    }
-
-    .viewing-label strong {
+    .personal-header h1 {
+        margin: 0;
         color: #fff;
-        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        font-size: 2rem;
+        font-weight: 600;
     }
 
-    .text-muted {
-        color: rgba(255, 255, 255, 0.6);
-        font-size: 12px;
+    .account-type {
+        margin: 10px 0 0 0;
+        color: rgba(255,255,255,0.8);
+        font-size: 16px;
+        font-weight: 500;
     }
 
-    .payment-user {
+    .user-selector-label {
+        color: rgba(255,255,255,0.9);
         font-size: 14px;
-        color: rgba(255, 255, 255, 0.8);
-        margin-top: 5px;
+        margin-right: 10px;
+    }
+
+    .welcome-message h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.2rem;
+    }
+
+    .welcome-message p {
+        margin: 0;
+        opacity: 0.9;
+    }
+
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 `;
 
 // Add the CSS to the document
 if (document.head) {
     const style = document.createElement('style');
-    style.textContent = additionalCSS;
+    style.textContent = personalAccountCSS;
     document.head.appendChild(style);
 }
