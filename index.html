@@ -27,12 +27,8 @@
                 </div>
                 <div id="loginError" class="login-error hidden"></div>
                 <div class="login-buttons">
-                    <button type="submit" class="btn btn--primary">
-                        <i class="fas fa-sign-in-alt"></i> Admin Login
-                    </button>
-                    <button type="button" id="viewOnlyBtn" class="btn btn--outline">
-                        <i class="fas fa-eye"></i> View Only
-                    </button>
+                    <button type="submit" class="btn btn--primary"><i class="fas fa-sign-in-alt"></i> Login</button>
+                    <button type="button" id="viewOnlyBtn" class="btn btn--outline"><i class="fas fa-eye"></i> View Only</button>
                 </div>
             </form>
         </div>
@@ -41,13 +37,10 @@
     <div id="app" class="app hidden">
         <nav class="navbar">
             <div class="navbar-content">
-                <div class="navbar-brand">
-                    <i class="fas fa-utensils"></i>
-                    <span>AM 2 PM Food Service</span>
-                </div>
+                <div class="navbar-brand"><i class="fas fa-utensils"></i><span>AM 2 PM Food Service</span></div>
                 <div id="realtime-clock" class="realtime-clock">
-                    <span id="clock-time">12:00:00 PM</span>
-                    <span id="clock-date">August 27, 2025</span>
+                    <span id="clock-time"></span>
+                    <span id="clock-date"></span>
                 </div>
                 <div class="navbar-controls">
                     <div class="user-selector">
@@ -63,31 +56,14 @@
                         </label>
                     </div>
                     <div class="user-info">
-                        <span id="currentUser">View Only</span>
-                        <button id="logoutBtn" class="btn btn--outline btn--sm">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </button>
+                        <span id="currentUser"></span>
+                        <button id="logoutBtn" class="btn btn--outline btn--sm"><i class="fas fa-sign-out-alt"></i> Logout</button>
                     </div>
                 </div>
             </div>
         </nav>
 
         <main class="main-content">
-            <div id="dashboardView" class="view">
-                <div class="dashboard-header">
-                    <h1>Monthly Overview</h1>
-                    <div class="month-nav">
-                        <button id="prevMonth" class="btn btn--outline btn--sm"><i class="fas fa-chevron-left"></i></button>
-                        <span id="currentMonth">August 2025</span>
-                        <button id="nextMonth" class="btn btn--outline btn--sm"><i class="fas fa-chevron-right"></i></button>
-                    </div>
-                </div>
-                <div class="stats-grid"></div>
-                <div class="calendar-section">
-                    <div class="calendar-header"><h2>Meal Calendar</h2></div>
-                    <div id="calendar" class="calendar-grid"></div>
-                </div>
-            </div>
             </main>
     </div>
     
