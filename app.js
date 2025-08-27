@@ -39,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('userSelect').addEventListener('change', e => { this.currentUser = e.target.value; this.renderDashboardView(); });
             document.getElementById('themeToggle').addEventListener('change', e => this.toggleTheme(e.target.checked));
             
+            // Event delegation for dynamically added content
             this.mainContent.addEventListener('click', e => {
                 if (e.target.closest('#prevMonth')) this.navigateMonth(-1);
                 if (e.target.closest('#nextMonth')) this.navigateMonth(1);
                 const dayCell = e.target.closest('.day-cell:not(.empty)');
                 if (dayCell) {
-                    // FIX: Construct date carefully to avoid timezone issues.
                     const [year, month, day] = dayCell.dataset.date.split('-').map(Number);
                     this.selectedDate = new Date(year, month - 1, day); 
                     this.renderDayDetailView();
@@ -104,13 +104,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const day = String(date.getDate()).padStart(2, '0');
             return `${year}-${month}-${day}`;
         }
-
+        
         // --- VIEW RENDERING --- //
         renderDashboardView() {
             const stats = this.calculateMonthlyStats();
             this.mainContent.innerHTML = `
                 <div id="dashboardView" class="view">
-                    <div class="dashboard-header">
+                    <div class.dashboard-header">
                         <h1>Monthly Overview</h1>
                         <div class="month-nav"><button id="prevMonth" class="btn btn--outline"><i class="fas fa-chevron-left"></i></button><span id="currentMonth">${this.currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })}</span><button id="nextMonth" class="btn btn--outline"><i class="fas fa-chevron-right"></i></button></div>
                     </div>
@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let i = 0; i < startDay; i++) calEl.innerHTML += `<div class="day-cell empty"></div>`;
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month, day);
-                const dateStr = this.getLocalISODate(date); // Use helper function
+                const dateStr = this.getLocalISODate(date);
                 const dayData = this.mealData[this.currentUser]?.[dateStr];
                 let classes = 'day-cell', dots = '';
                 if (dayData) {
@@ -148,7 +148,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         renderDayDetailView() {
-            // FIX: Use helper function to prevent timezone bug
             const dateStr = this.getLocalISODate(this.selectedDate);
             const dayData = this.mealData[this.currentUser]?.[dateStr] || { lunch: false, dinner: false };
             const mealCount = (dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0);
@@ -158,37 +157,96 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="meal-cards">
                         <div class="meal-card">
                             <div class="meal-header"><h3><i class="fas fa-sun"></i> Lunch</h3><div class="meal-cost">₹${this.mealRate}</div></div>
-                            <div class="meal-toggle">
-                                <label class="toggle-switch"><input type="checkbox" id="lunchToggle" ${dayData.lunch ? 'checked' : ''} ${!this.isAdmin ? 'disabled' : ''}><span class="toggle-slider"></span></label>
-                                <span class="toggle-label">${dayData.lunch ? 'Eaten' : 'Skipped'}</span>
-                            </div>
+                            <div class="meal-toggle"><label class="toggle-switch"><input type="checkbox" id="lunchToggle" ${dayData.lunch ? 'checked' : ''} ${!this.isAdmin ? 'disabled' : ''}><span class="toggle-slider"></span></label><span class="toggle-label">${dayData.lunch ? 'Eaten' : 'Skipped'}</span></div>
                         </div>
                         <div class="meal-card">
                             <div class="meal-header"><h3><i class="fas fa-moon"></i> Dinner</h3><div class="meal-cost">₹${this.mealRate}</div></div>
-                            <div class="meal-toggle">
-                                <label class="toggle-switch"><input type="checkbox" id="dinnerToggle" ${dayData.dinner ? 'checked' : ''} ${!this.isAdmin ? 'disabled' : ''}><span class="toggle-slider"></span></label>
-                                <span class="toggle-label">${dayData.dinner ? 'Eaten' : 'Skipped'}</span>
-                            </div>
+                            <div class="meal-toggle"><label class="toggle-switch"><input type="checkbox" id="dinnerToggle" ${dayData.dinner ? 'checked' : ''} ${!this.isAdmin ? 'disabled' : ''}><span class="toggle-slider"></span></label><span class="toggle-label">${dayData.dinner ? 'Eaten' : 'Skipped'}</span></div>
                         </div>
                     </div>
                     <div class="day-summary"><div class="summary-card"><h4>Daily Summary</h4><div class="summary-item"><span>Meals:</span><span>${mealCount}</span></div><div class="summary-item"><span>Cost:</span><span>₹${mealCount * this.mealRate}</span></div></div></div>
                 </div>`;
         }
-        
-        renderPaymentView() { /* ... unchanged ... */ }
+
+        renderPaymentView() {
+            this.mainContent.innerHTML = `
+                <div id="paymentView" class="view">
+                    <div class="payment-header"><button id="backToCalendar" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back</button><h1>Payment Tracking</h1></div>
+                    <div class="payment-form-card"></div>
+                    <div class="payment-history"><h3>Payment History</h3><div id="paymentList" class="payment-list"></div></div>
+                </div>`;
+            this.resetPaymentForm();
+            this.updatePaymentList();
+        }
 
         // --- DATA & LOGIC --- //
         navigateMonth(dir) { this.currentDate.setMonth(this.currentDate.getMonth() + dir); this.renderDashboardView(); }
         updateMealStatus(meal, status) {
-            // FIX: Use helper function to prevent timezone bug
             const dateStr = this.getLocalISODate(this.selectedDate);
             if (!this.mealData[this.currentUser]) this.mealData[this.currentUser] = {};
             if (!this.mealData[this.currentUser][dateStr]) this.mealData[this.currentUser][dateStr] = { lunch: false, dinner: false };
             this.mealData[this.currentUser][dateStr][meal] = status;
-            this.renderDayDetailView(); // Re-render to update labels and summary
+            this.renderDayDetailView();
         }
-        
-        // ... The rest of the methods (handlePaymentFormSubmit, calculateMonthlyStats, etc.) are unchanged ...
+        handlePaymentFormSubmit() {
+            const amount = parseInt(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            if (!this.paymentData[this.currentUser]) this.paymentData[this.currentUser] = [];
+            
+            if (this.editingPaymentId) {
+                const payment = this.paymentData[this.currentUser].find(p => p.id == this.editingPaymentId);
+                payment.amount = amount; payment.date = date;
+            } else {
+                this.paymentData[this.currentUser].push({ id: Date.now(), amount, date });
+            }
+            this.resetPaymentForm(); this.updatePaymentList();
+        }
+        handleEditPayment(id) {
+            this.editingPaymentId = id;
+            const payment = this.paymentData[this.currentUser].find(p => p.id == id);
+            document.getElementById('paymentFormTitle').textContent = 'Edit Payment';
+            document.getElementById('paymentAmount').value = payment.amount;
+            document.getElementById('paymentDate').value = payment.date;
+        }
+        handleDeletePayment(id) {
+            if (confirm('Delete this payment?')) {
+                this.paymentData[this.currentUser] = this.paymentData[this.currentUser].filter(p => p.id != id);
+                this.updatePaymentList();
+            }
+        }
+        resetPaymentForm() {
+            this.editingPaymentId = null;
+            const formContainer = this.mainContent.querySelector('.payment-form-card');
+            formContainer.innerHTML = `<h3 id="paymentFormTitle">Record Payment</h3><form id="paymentForm"><div class="form-group"><label>Amount</label><input type="number" id="paymentAmount" class="form-control" required></div><div class="form-group"><label>Date</label><input type="date" id="paymentDate" class="form-control" required></div><button type="submit" class="btn btn--primary">Save</button></form>`;
+            document.getElementById('paymentDate').valueAsDate = new Date();
+        }
+        updatePaymentList() {
+            const listEl = document.getElementById('paymentList'); listEl.innerHTML = '';
+            const payments = this.paymentData[this.currentUser] || [];
+            if (payments.length === 0) { listEl.innerHTML = '<p>No payments recorded.</p>'; return; }
+            payments.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+                listEl.innerHTML += `<div class="payment-item"><div><strong>₹${p.amount}</strong><span> on ${new Date(p.date).toLocaleDateString()}</span></div><div class="payment-actions"><button class="btn--icon edit-btn" data-payment-id="${p.id}"><i class="fas fa-edit"></i></button><button class="btn--icon delete-btn" data-payment-id="${p.id}"><i class="fas fa-trash"></i></button></div></div>`;
+            });
+        }
+        calculateMonthlyStats() {
+            const meals = this.mealData[this.currentUser] || {};
+            const payments = this.paymentData[this.currentUser] || [];
+            const year = this.currentDate.getFullYear(), month = this.currentDate.getMonth();
+            let totalMeals = 0;
+            for (const date in meals) {
+                const d = new Date(date);
+                if (d.getUTCFullYear() === year && d.getUTCMonth() === month) {
+                    if (meals[date].lunch) totalMeals++; if (meals[date].dinner) totalMeals++;
+                }
+            }
+            const totalPaid = payments.reduce((sum, p) => {
+                const d = new Date(p.date);
+                return (d.getUTCFullYear() === year && d.getUTCMonth() === month) ? sum + p.amount : sum;
+            }, 0);
+            const totalCost = totalMeals * this.mealRate;
+            return { totalMeals, totalCost, totalPaid, balance: totalCost - totalPaid };
+        }
     }
+
     window.app = new FoodServiceApp();
 });
