@@ -7,11 +7,51 @@ class FoodServiceApp {
         this.selectedDate = new Date();
         this.currentView = 'dashboard';
 
-        // Sample data from provided JSON
-        this.users = ["John Doe", "Jane Smith", "Mike Johnson", "Sarah Wilson"];
+        // Updated users: Abid Hossain and Ahsan Ansari
+        this.users = ["Abid Hossain", "Ahsan Ansari"];
         this.monthlyRate = 2700;
         this.dailyRate = 90;
         this.mealRate = 45;
+
+        // Initialize sample meal data for Abid and Ahsan
+        this.mealData = {
+            "Abid Hossain": {
+                "2025-08-27": { lunch: true, dinner: false },
+                "2025-08-26": { lunch: true, dinner: true },
+                "2025-08-25": { lunch: false, dinner: true },
+                "2025-08-24": { lunch: true, dinner: false },
+                "2025-08-23": { lunch: false, dinner: false },
+                "2025-08-22": { lunch: true, dinner: true },
+                "2025-08-21": { lunch: true, dinner: true },
+                "2025-08-20": { lunch: false, dinner: true },
+                "2025-08-19": { lunch: true, dinner: false },
+                "2025-08-18": { lunch: true, dinner: true },
+                "2025-08-17": { lunch: false, dinner: false },
+                "2025-08-16": { lunch: true, dinner: true },
+                "2025-08-15": { lunch: true, dinner: false }
+            },
+            "Ahsan Ansari": {
+                "2025-08-27": { lunch: false, dinner: true },
+                "2025-08-26": { lunch: true, dinner: true },
+                "2025-08-25": { lunch: true, dinner: false },
+                "2025-08-24": { lunch: false, dinner: true },
+                "2025-08-23": { lunch: true, dinner: false },
+                "2025-08-22": { lunch: true, dinner: true },
+                "2025-08-21": { lunch: false, dinner: false },
+                "2025-08-20": { lunch: true, dinner: true },
+                "2025-08-19": { lunch: false, dinner: true },
+                "2025-08-18": { lunch: true, dinner: false },
+                "2025-08-17": { lunch: true, dinner: true },
+                "2025-08-16": { lunch: false, dinner: false },
+                "2025-08-15": { lunch: true, dinner: true }
+            }
+        };
+
+        // Initialize sample payment data for Abid and Ahsan
+        this.paymentData = {
+            "Abid Hossain": { amount: 1500, date: "2025-08-01", month: "August 2025" },
+            "Ahsan Ansari": { amount: 2200, date: "2025-08-05", month: "August 2025" }
+        };
 
         this.init();
     }
@@ -37,6 +77,7 @@ class FoodServiceApp {
         // User selector
         document.getElementById('userSelect').addEventListener('change', (e) => {
             this.currentUser = e.target.value;
+            this.updateCurrentUserLabel();
             this.renderCurrentView();
         });
 
@@ -64,27 +105,34 @@ class FoodServiceApp {
     }
 
     handleLogin() {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value.trim();
 
-        // Support for 2 users
-        if ((username === 'admin1' && password === 'yourpassword1') || 
-            (username === 'admin2' && password === 'yourpassword2')) {
+        console.log('Login attempt:', username); // For debugging
+
+        // Support for 2 admin users
+        if ((username === 'AbidHossain' && password === 'Abid@786') || 
+            (username === 'Ehsan Ansari' && password === 'Ehsan@786')) {
+            console.log('Admin login successful');
             this.isAdmin = true;
             this.showApp();
-            this.currentUser = this.users[0]; // Set default user
+            this.currentUser = this.users[0]; // Set default user to Abid Hossain
             document.getElementById('userSelect').value = this.currentUser;
+            this.updateCurrentUserLabel();
             this.renderCurrentView();
         } else {
+            console.log('Login failed');
             this.showError('Invalid credentials. Please try again.');
         }
     }
 
     handleViewOnly() {
+        console.log('View-only mode activated');
         this.isAdmin = false;
         this.showApp();
-        this.currentUser = this.users[0]; // Set default user
+        this.currentUser = this.users[0]; // Set default user to Abid Hossain
         document.getElementById('userSelect').value = this.currentUser;
+        this.updateCurrentUserLabel();
         this.renderCurrentView();
     }
 
@@ -103,10 +151,23 @@ class FoodServiceApp {
         ).join('');
     }
 
+    updateCurrentUserLabel() {
+        const label = document.getElementById('currentUserLabel');
+        if (label) {
+            label.textContent = this.currentUser;
+        }
+    }
+
     updateAdminControls() {
         const adminControls = document.querySelectorAll('.admin-only');
         adminControls.forEach(control => {
             control.style.display = this.isAdmin ? 'block' : 'none';
+        });
+
+        // Disable meal toggles for view-only users
+        const mealToggles = document.querySelectorAll('input[data-meal]');
+        mealToggles.forEach(toggle => {
+            toggle.disabled = !this.isAdmin;
         });
     }
 
@@ -116,6 +177,15 @@ class FoodServiceApp {
         if (!errorDiv) {
             errorDiv = document.createElement('div');
             errorDiv.className = 'login-error';
+            errorDiv.style.cssText = `
+                color: #e74c3c;
+                background: rgba(231, 76, 60, 0.1);
+                padding: 10px;
+                border-radius: 5px;
+                margin-top: 10px;
+                text-align: center;
+                font-size: 14px;
+            `;
             document.querySelector('.login-form').appendChild(errorDiv);
         }
         errorDiv.textContent = message;
@@ -158,6 +228,9 @@ class FoodServiceApp {
                 content.innerHTML = this.renderAnalytics();
                 break;
         }
+
+        // Update admin controls after rendering
+        this.updateAdminControls();
     }
 
     renderDashboard() {
@@ -180,6 +253,11 @@ class FoodServiceApp {
         const balance = totalCost - paid;
 
         return `
+            <div class="viewing-info">
+                <h2>Dashboard - ${this.currentUser}</h2>
+                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            </div>
+
             <div class="dashboard-grid">
                 <div class="stat-card">
                     <div class="stat-icon">🍽️</div>
@@ -219,7 +297,7 @@ class FoodServiceApp {
             </div>
 
             <div class="recent-activity">
-                <h3>Recent Activity</h3>
+                <h3>Recent Activity - ${this.currentUser}</h3>
                 ${this.renderRecentActivity()}
             </div>
         `;
@@ -229,7 +307,7 @@ class FoodServiceApp {
         const userData = this.mealData[this.currentUser] || {};
         const recent = Object.entries(userData)
             .sort(([a], [b]) => new Date(b) - new Date(a))
-            .slice(0, 5);
+            .slice(0, 7);
 
         return `
             <div class="activity-list">
@@ -256,17 +334,22 @@ class FoodServiceApp {
         const dayData = userData[dateStr] || { lunch: false, dinner: false };
 
         return `
+            <div class="viewing-info">
+                <h2>Meals - ${this.currentUser}</h2>
+                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            </div>
+
             <div class="meal-view">
                 <div class="date-header">
                     <button class="btn btn--outline" id="prevDate">
                         <i class="fas fa-chevron-left"></i>
                     </button>
-                    <h2>${this.selectedDate.toLocaleDateString('en-US', { 
+                    <h3>${this.selectedDate.toLocaleDateString('en-US', { 
                         weekday: 'long', 
                         year: 'numeric', 
                         month: 'long', 
                         day: 'numeric' 
-                    })}</h2>
+                    })}</h3>
                     <button class="btn btn--outline" id="nextDate">
                         <i class="fas fa-chevron-right"></i>
                     </button>
@@ -275,7 +358,7 @@ class FoodServiceApp {
                 <div class="meals-container">
                     <div class="meal-card">
                         <div class="meal-header">
-                            <h3><i class="fas fa-sun"></i> Lunch</h3>
+                            <h4><i class="fas fa-sun"></i> Lunch</h4>
                             <span class="meal-cost">₹45</span>
                         </div>
                         <div class="meal-toggle">
@@ -286,12 +369,13 @@ class FoodServiceApp {
                                 <span class="toggle-slider"></span>
                             </label>
                             <span class="toggle-label">${dayData.lunch ? 'Eaten' : 'Not Eaten'}</span>
+                            ${!this.isAdmin ? '<small class="text-muted">(View Only)</small>' : ''}
                         </div>
                     </div>
 
                     <div class="meal-card">
                         <div class="meal-header">
-                            <h3><i class="fas fa-moon"></i> Dinner</h3>
+                            <h4><i class="fas fa-moon"></i> Dinner</h4>
                             <span class="meal-cost">₹45</span>
                         </div>
                         <div class="meal-toggle">
@@ -302,12 +386,13 @@ class FoodServiceApp {
                                 <span class="toggle-slider"></span>
                             </label>
                             <span class="toggle-label">${dayData.dinner ? 'Eaten' : 'Not Eaten'}</span>
+                            ${!this.isAdmin ? '<small class="text-muted">(View Only)</small>' : ''}
                         </div>
                     </div>
                 </div>
 
                 <div class="day-summary">
-                    <h4>Day Summary</h4>
+                    <h4>Day Summary for ${this.currentUser}</h4>
                     <p>Meals taken: ${(dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)}/2</p>
                     <p>Daily cost: ₹${((dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0)) * this.mealRate}</p>
                 </div>
@@ -331,6 +416,11 @@ class FoodServiceApp {
         const balance = totalCost - paymentData.amount;
 
         return `
+            <div class="viewing-info">
+                <h2>Payments - ${this.currentUser}</h2>
+                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            </div>
+
             <div class="payment-view">
                 <div class="payment-summary">
                     <h3>August 2025 - Payment Summary</h3>
@@ -356,7 +446,7 @@ class FoodServiceApp {
 
                 ${this.isAdmin ? `
                 <div class="payment-form admin-only">
-                    <h4>Record Payment</h4>
+                    <h4>Record Payment for ${this.currentUser}</h4>
                     <form id="paymentForm">
                         <div class="form-group">
                             <label for="paymentAmount">Payment Amount (₹)</label>
@@ -373,7 +463,7 @@ class FoodServiceApp {
                         </button>
                     </form>
                 </div>
-                ` : ''}
+                ` : '<p class="text-muted">Payment recording is only available to admins.</p>'}
 
                 <div class="payment-history">
                     <h4>Payment History</h4>
@@ -381,6 +471,7 @@ class FoodServiceApp {
                         <div class="payment-record">
                             <div class="payment-date">${new Date(paymentData.date).toLocaleDateString()}</div>
                             <div class="payment-amount">₹${paymentData.amount}</div>
+                            <div class="payment-user">Payment by/for: ${this.currentUser}</div>
                         </div>
                     ` : '<p class="text-muted">No payments recorded</p>'}
                 </div>
@@ -397,9 +488,12 @@ class FoodServiceApp {
         const mealTypeStats = this.calculateMealTypeStats(userData, currentMonth);
 
         return `
-            <div class="analytics-view">
-                <h3>Analytics for ${this.currentUser}</h3>
+            <div class="viewing-info">
+                <h2>Analytics - ${this.currentUser}</h2>
+                <p class="viewing-label">Currently viewing data for: <strong>${this.currentUser}</strong></p>
+            </div>
 
+            <div class="analytics-view">
                 <div class="analytics-grid">
                     <div class="chart-container">
                         <h4>Weekly Meal Pattern</h4>
@@ -409,10 +503,10 @@ class FoodServiceApp {
                                     <div class="day-label">${day}</div>
                                     <div class="meal-bars">
                                         <div class="meal-bar lunch-bar" 
-                                             style="height: ${(weeklyStats[index]?.lunch || 0) * 20}px"
+                                             style="height: ${Math.max((weeklyStats[index]?.lunch || 0) * 20, 2)}px"
                                              title="Lunch: ${weeklyStats[index]?.lunch || 0}"></div>
                                         <div class="meal-bar dinner-bar" 
-                                             style="height: ${(weeklyStats[index]?.dinner || 0) * 20}px"
+                                             style="height: ${Math.max((weeklyStats[index]?.dinner || 0) * 20, 2)}px"
                                              title="Dinner: ${weeklyStats[index]?.dinner || 0}"></div>
                                     </div>
                                 </div>
@@ -429,17 +523,17 @@ class FoodServiceApp {
                         <div class="stat-item">
                             <span class="stat-label">Lunch Attendance:</span>
                             <span class="stat-value">${mealTypeStats.lunch}/${mealTypeStats.totalDays}</span>
-                            <span class="stat-percentage">(${Math.round(mealTypeStats.lunch/mealTypeStats.totalDays*100)}%)</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.lunch/Math.max(mealTypeStats.totalDays,1)*100)}%)</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Dinner Attendance:</span>
                             <span class="stat-value">${mealTypeStats.dinner}/${mealTypeStats.totalDays}</span>
-                            <span class="stat-percentage">(${Math.round(mealTypeStats.dinner/mealTypeStats.totalDays*100)}%)</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.dinner/Math.max(mealTypeStats.totalDays,1)*100)}%)</span>
                         </div>
                         <div class="stat-item">
                             <span class="stat-label">Overall Attendance:</span>
                             <span class="stat-value">${mealTypeStats.total}/${mealTypeStats.totalDays * 2}</span>
-                            <span class="stat-percentage">(${Math.round(mealTypeStats.total/(mealTypeStats.totalDays*2)*100)}%)</span>
+                            <span class="stat-percentage">(${Math.round(mealTypeStats.total/Math.max(mealTypeStats.totalDays*2,1)*100)}%)</span>
                         </div>
                     </div>
                 </div>
@@ -505,7 +599,7 @@ class FoodServiceApp {
         const summaryElement = document.querySelector('.day-summary');
         if (summaryElement) {
             summaryElement.innerHTML = `
-                <h4>Day Summary</h4>
+                <h4>Day Summary for ${this.currentUser}</h4>
                 <p>Meals taken: ${mealsCount}/2</p>
                 <p>Daily cost: ₹${mealsCount * this.mealRate}</p>
             `;
@@ -544,7 +638,10 @@ class FoodServiceApp {
         this.paymentData[this.currentUser].date = date;
 
         // Show success message
-        this.showSuccessMessage('Payment recorded successfully!');
+        this.showSuccessMessage(`Payment of ₹${amount} recorded for ${this.currentUser}!`);
+
+        // Clear form
+        document.getElementById('paymentAmount').value = '';
 
         // Refresh payment view
         setTimeout(() => {
@@ -566,6 +663,7 @@ class FoodServiceApp {
             border-radius: 5px;
             z-index: 1000;
             animation: slideIn 0.3s ease-out;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         `;
 
         document.body.appendChild(successDiv);
@@ -582,7 +680,10 @@ class FoodServiceApp {
 
     updateDateTime() {
         const now = new Date();
-        document.getElementById('currentDateTime').textContent = now.toLocaleString();
+        const element = document.getElementById('currentDateTime');
+        if (element) {
+            element.textContent = now.toLocaleString();
+        }
     }
 
     logout() {
@@ -601,133 +702,56 @@ class FoodServiceApp {
         if (errorDiv) {
             errorDiv.style.display = 'none';
         }
+
+        console.log('User logged out');
     }
 }
 
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new FoodServiceApp();
+    console.log('AM 2 PM Food Service App initialized');
+    console.log('Available users:', window.app.users);
 });
 
-// Support for 2 users - Enhanced Authentication System
-// This section provides additional authentication methods and user management
-
-class AuthManager {
-    constructor() {
-        this.users = {
-            'admin1': {
-                password: 'yourpassword1',
-                name: 'Admin User 1',
-                role: 'admin',
-                permissions: ['view', 'edit', 'delete', 'manage_payments']
-            },
-            'admin2': {
-                password: 'yourpassword2', 
-                name: 'Admin User 2',
-                role: 'admin',
-                permissions: ['view', 'edit', 'delete', 'manage_payments']
-            }
-        };
-        this.currentUser = null;
-        this.sessionTimeout = 30 * 60 * 1000; // 30 minutes
-        this.sessionTimer = null;
+// Add some CSS for the viewing info
+const additionalCSS = `
+    .viewing-info {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 20px;
+        text-align: center;
     }
 
-    authenticate(username, password) {
-        const user = this.users[username];
-        if (user && user.password === password) {
-            this.currentUser = {
-                username: username,
-                name: user.name,
-                role: user.role,
-                permissions: user.permissions,
-                loginTime: new Date()
-            };
-            this.startSessionTimer();
-            return true;
-        }
-        return false;
+    .viewing-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 16px;
+        margin: 10px 0 0 0;
     }
 
-    hasPermission(permission) {
-        return this.currentUser && this.currentUser.permissions.includes(permission);
+    .viewing-label strong {
+        color: #fff;
+        text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
     }
 
-    startSessionTimer() {
-        if (this.sessionTimer) {
-            clearTimeout(this.sessionTimer);
-        }
-
-        this.sessionTimer = setTimeout(() => {
-            this.logout();
-            alert('Session expired. Please login again.');
-        }, this.sessionTimeout);
+    .text-muted {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 12px;
     }
 
-    refreshSession() {
-        if (this.currentUser) {
-            this.startSessionTimer();
-        }
+    .payment-user {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 5px;
     }
+`;
 
-    logout() {
-        this.currentUser = null;
-        if (this.sessionTimer) {
-            clearTimeout(this.sessionTimer);
-        }
-
-        // Trigger app logout
-        if (window.app) {
-            window.app.logout();
-        }
-    }
-
-    getCurrentUser() {
-        return this.currentUser;
-    }
-
-    isLoggedIn() {
-        return this.currentUser !== null;
-    }
-
-    // Method to change password (admin function)
-    changePassword(username, oldPassword, newPassword) {
-        const user = this.users[username];
-        if (user && user.password === oldPassword) {
-            user.password = newPassword;
-            return true;
-        }
-        return false;
-    }
-
-    // Method to add new user (if needed in future)
-    addUser(username, password, name, role = 'admin') {
-        if (this.users[username]) {
-            return false; // User already exists
-        }
-
-        this.users[username] = {
-            password: password,
-            name: name,
-            role: role,
-            permissions: role === 'admin' ? ['view', 'edit', 'delete', 'manage_payments'] : ['view']
-        };
-        return true;
-    }
+// Add the CSS to the document
+if (document.head) {
+    const style = document.createElement('style');
+    style.textContent = additionalCSS;
+    document.head.appendChild(style);
 }
-
-// Initialize Auth Manager
-window.authManager = new AuthManager();
-
-// Auto-refresh session on user activity
-document.addEventListener('click', () => {
-    if (window.authManager.isLoggedIn()) {
-        window.authManager.refreshSession();
-    }
-});
-
-document.addEventListener('keypress', () => {
-    if (window.authManager.isLoggedIn()) {
-        window.authManager.refreshSession();
-    }
-});
