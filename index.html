@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AM 2 PM Food Service - Meal Tracker</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-utensils"></i> AM 2 PM Food Service</h2>
+                <p>Welcome to our meal tracking system</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="form-group">
+                    <label for="username" class="form-label">Username</label>
+                    <input type="text" id="username" class="form-control" placeholder="Enter username">
+                </div>
+                <div class="form-group">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="Enter password">
+                </div>
+                <div class="login-buttons">
+                    <button type="submit" class="btn btn--primary">
+                        <i class="fas fa-sign-in-alt"></i> Admin Login
+                    </button>
+                    <button type="button" id="viewOnlyBtn" class="btn btn--outline">
+                        <i class="fas fa-eye"></i> View Only
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app hidden">
+        <!-- Navigation Header -->
+        <nav class="navbar">
+            <div class="navbar-content">
+                <div class="navbar-brand">
+                    <i class="fas fa-utensils"></i>
+                    <span>AM 2 PM Food Service</span>
+                </div>
+                <div class="navbar-controls">
+                    <div class="user-selector">
+                        <select id="userSelect" class="form-control">
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <div class="user-info">
+                        <span id="currentUser">View Only</span>
+                        <button id="logoutBtn" class="btn btn--outline btn--sm">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Dashboard View -->
+            <div id="dashboardView" class="view">
+                <div class="dashboard-header">
+                    <h1>Monthly Overview</h1>
+                    <div class="month-nav">
+                        <button id="prevMonth" class="btn btn--outline btn--sm">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span id="currentMonth">August 2025</span>
+                        <button id="nextMonth" class="btn btn--outline btn--sm">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="mealsEaten">0</h3>
+                            <p>Meals Eaten</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-rupee-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="totalDue">₹0</h3>
+                            <p>Total Spent</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-credit-card"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="amountPaid">₹0</h3>
+                            <p>Amount Paid</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-balance-scale"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="balance">₹0</h3>
+                            <p>Balance</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calendar Grid -->
+                <div class="calendar-section">
+                    <div class="calendar-header">
+                        <h2>Meal Calendar</h2>
+                        <div class="calendar-legend">
+                            <div class="legend-item">
+                                <div class="legend-dot lunch"></div>
+                                <span>Lunch</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot dinner"></div>
+                                <span>Dinner</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="calendar" class="calendar-grid"></div>
+                </div>
+            </div>
+
+            <!-- Day Detail View -->
+            <div id="dayDetailView" class="view hidden">
+                <div class="day-detail-header">
+                    <button id="backToCalendar" class="btn btn--outline">
+                        <i class="fas fa-arrow-left"></i> Back to Calendar
+                    </button>
+                    <h1 id="selectedDate">Today</h1>
+                </div>
+
+                <div class="meal-cards">
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <h3><i class="fas fa-sun"></i> Lunch</h3>
+                            <div class="meal-cost">₹45</div>
+                        </div>
+                        <div class="meal-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="lunchToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">I ate lunch today</span>
+                        </div>
+                    </div>
+
+                    <div class="meal-card">
+                        <div class="meal-header">
+                            <h3><i class="fas fa-moon"></i> Dinner</h3>
+                            <div class="meal-cost">₹45</div>
+                        </div>
+                        <div class="meal-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="dinnerToggle">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <span class="toggle-label">I ate dinner today</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="day-summary">
+                    <div class="summary-card">
+                        <h4>Daily Summary</h4>
+                        <div class="summary-item">
+                            <span>Meals consumed:</span>
+                            <span id="dayMealCount">0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span>Daily cost:</span>
+                            <span id="dayCost">₹0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment View -->
+            <div id="paymentView" class="view hidden">
+                <div class="payment-header">
+                    <button id="backToCalendarFromPayment" class="btn btn--outline">
+                        <i class="fas fa-arrow-left"></i> Back to Calendar
+                    </button>
+                    <h1>Payment Tracking</h1>
+                </div>
+
+                <div class="payment-form-card">
+                    <h3>Record Payment</h3>
+                    <form id="paymentForm">
+                        <div class="form-group">
+                            <label for="paymentAmount" class="form-label">Amount Paid (₹)</label>
+                            <input type="number" id="paymentAmount" class="form-control" placeholder="Enter amount">
+                        </div>
+                        <div class="form-group">
+                            <label for="paymentDate" class="form-label">Payment Date</label>
+                            <input type="date" id="paymentDate" class="form-control">
+                        </div>
+                        <button type="submit" class="btn btn--primary">
+                            <i class="fas fa-save"></i> Save Payment
+                        </button>
+                    </form>
+                </div>
+
+                <div class="payment-history">
+                    <h3>Payment History</h3>
+                    <div id="paymentList" class="payment-list">
+                        <!-- Payment history will be populated here -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Floating Action Button -->
+        <div id="fab" class="fab hidden">
+            <button id="fabBtn" class="fab-button">
+                <i class="fas fa-plus"></i>
+            </button>
+            <div id="fabMenu" class="fab-menu hidden">
+                <button id="addPaymentBtn" class="fab-menu-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Add Payment</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner hidden">
+        <div class="spinner"></div>
+        <p>Loading...</p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
