@@ -5,22 +5,21 @@ document.addEventListener('DOMContentLoaded', () => {
             this.isAdmin = false;
             this.currentUser = '';
             this.loggedInUser = '';
-            this.currentDate = new Date();
+            this.currentDate = new new Date();
             this.selectedDate = null;
             this.editingPaymentId = null;
 
-            // User accounts
+            // Data
             this.users = ["Abid Hossain", "Ahsan Ansari"];
             this.mealRate = 45;
-
-            // Load data from Local Storage or use initial data
+            
+            // MODIFICATION: Load saved data instead of using fixed data
             this._loadData();
             
             this.init();
         }
-        
-        // --- DATA PERSISTENCE --- //
-        
+
+        // --- NEW: DATA PERSISTENCE (SAVE & LOAD) --- //
         _saveData() {
             localStorage.setItem('mealData', JSON.stringify(this.mealData));
             localStorage.setItem('paymentData', JSON.stringify(this.paymentData));
@@ -30,26 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
             const savedMealData = localStorage.getItem('mealData');
             const savedPaymentData = localStorage.getItem('paymentData');
 
+            // Load saved meal data, or set default data if none exists
             if (savedMealData) {
                 this.mealData = JSON.parse(savedMealData);
             } else {
-                // Default data if nothing is saved
                 this.mealData = {
-                    "Abid Hossain": { "2025-08-27": { lunch: true, dinner: false }, "2025-08-26": { lunch: true, dinner: true } },
+                    "Abid Hossain": { 
+                        "2025-07-25": { lunch: true, dinner: true },
+                        "2025-08-27": { lunch: true, dinner: false }, 
+                        "2025-08-26": { lunch: true, dinner: true } 
+                    },
                     "Ahsan Ansari": { "2025-08-26": { lunch: true, dinner: true } }
                 };
             }
 
+            // Load saved payment data, or set default data if none exists
             if (savedPaymentData) {
                 this.paymentData = JSON.parse(savedPaymentData);
             } else {
-                // Default data if nothing is saved
                 this.paymentData = {
-                    "Abid Hossain": [{ id: Date.now(), amount: 1500, date: "2025-08-01" }],
+                    "Abid Hossain": [
+                        { id: Date.now() - 1000, amount: 500, date: "2025-07-15" },
+                        { id: Date.now(), amount: 1500, date: "2025-08-01" }
+                    ],
                     "Ahsan Ansari": [{ id: Date.now() + 1, amount: 2000, date: "2025-08-05" }]
                 };
             }
         }
+        // --- END OF NEW CODE --- //
 
         init() {
             this.mainContent = document.getElementById('main-content');
@@ -219,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!this.mealData[this.currentUser]) this.mealData[this.currentUser] = {};
             if (!this.mealData[this.currentUser][dateStr]) this.mealData[this.currentUser][dateStr] = { lunch: false, dinner: false };
             this.mealData[this.currentUser][dateStr][meal] = status;
-            this._saveData(); // Save changes
+            this._saveData(); // MODIFICATION: Save changes
             this.renderDayDetailView();
         }
         
@@ -265,11 +272,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (this.editingPaymentId) {
                 const payment = this.paymentData[this.currentUser].find(p => p.id == this.editingPaymentId);
-                payment.amount = amount; payment.date = date;
+                payment.amount = amount;
+                payment.date = date;
             } else {
                 this.paymentData[this.currentUser].push({ id: Date.now(), amount, date });
             }
-            this._saveData(); // Save changes
+            this._saveData(); // MODIFICATION: Save changes
             this.resetPaymentForm();
             this.updatePaymentList();
         }
@@ -283,14 +291,14 @@ document.addEventListener('DOMContentLoaded', () => {
         handleDeletePayment(id) {
             if (confirm('Delete this payment?')) {
                 this.paymentData[this.currentUser] = this.paymentData[this.currentUser].filter(p => p.id != id);
-                this._saveData(); // Save changes
+                this._saveData(); // MODIFICATION: Save changes
                 this.updatePaymentList();
             }
         }
         resetPaymentForm() {
             this.editingPaymentId = null;
             const formContainer = this.mainContent.querySelector('.payment-form-card');
-            formContainer.innerHTML = `<h3 id="paymentFormTitle">Record Payment</h3><form id="paymentForm"><div class="form-group"><label>Amount</label><input type="number" id="paymentAmount" class="form-control" required></div><div class="form-group"><label>Date</label><input type="date" id="paymentDate" class="form-control" required></div><button type="submit" class="btn btn--primary">Save</button></form>`;
+            formContainer.innerHTML = `<h3 id="paymentFormTitle">Record Payment</h3><form id="paymentForm"><div class="form-group"><label>Amount</label><input type="number" id="paymentAmount" class.form-control" required></div><div class="form-group"><label>Date</label><input type="date" id="paymentDate" class="form-control" required></div><button type="submit" class="btn btn--primary">Save</button></form>`;
             document.getElementById('paymentDate').valueAsDate = new Date();
         }
         updatePaymentList() {
