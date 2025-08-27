@@ -9,14 +9,14 @@
   --color-border: #dee2e6;
   --color-shadow: rgba(0, 0, 0, 0.1);
   --color-danger: #dc3545;
-  --color-success: #28a745;
   --color-lunch: #ffc107; /* Yellow */
-  --color-dinner: #17a2b8; /* Blue-ish */
+  --color-dinner: #17a2b8; /* Teal */
 
   /* Spacing & Sizing */
   --space-4: 4px; --space-8: 8px; --space-12: 12px; --space-16: 16px; --space-24: 24px;
   --font-size-sm: 0.875rem; --font-size-md: 1rem; --font-size-lg: 1.25rem;
   --radius-sm: 4px; --radius-md: 8px; --radius-lg: 16px;
+  --transition-speed: 0.3s;
 }
 
 body.dark-mode {
@@ -28,17 +28,19 @@ body.dark-mode {
   --color-text-primary: #e9ecef;
   --color-text-secondary: #adb5bd;
   --color-border: #495057;
-  --color-shadow: rgba(255, 255, 255, 0.1);
+  --color-shadow: rgba(0, 0, 0, 0.25);
 }
 
 /* Base Styles */
+* { box-sizing: border-box; }
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--color-background);
   color: var(--color-text-primary);
-  transition: background-color 0.3s, color 0.3s;
+  transition: background-color var(--transition-speed), color var(--transition-speed);
 }
+.hidden { display: none !important; }
 
 /* Particle.js Background */
 #particles-js {
@@ -50,121 +52,49 @@ body {
   z-index: -1;
 }
 
-/* Login Modal */
-.modal {
-  display: flex; /* Initially shown */
-  position: fixed;
-  inset: 0;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0,0,0,0.5);
-  backdrop-filter: blur(5px);
-}
-.modal-content {
-  background: var(--color-surface);
-  padding: var(--space-24);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 10px 30px var(--color-shadow);
-  width: 90%;
-  max-width: 400px;
-  border: 1px solid var(--color-border);
-}
+/* Login & Main App */
+.modal { display: flex; position: fixed; inset: 0; justify-content: center; align-items: center; background-color: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+.modal-content { background: var(--color-surface); padding: var(--space-24); border-radius: var(--radius-lg); box-shadow: 0 10px 30px var(--color-shadow); width: 90%; max-width: 400px; border: 1px solid var(--color-border); }
+.app { min-height: 100vh; }
+.main-content { padding: var(--space-24); max-width: 1400px; margin: auto; width: 100%; }
 
-/* Main App */
-.app {
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-.navbar {
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  padding: var(--space-12) var(--space-24);
-}
-.navbar-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  max-width: 1400px;
-  margin: auto;
-}
-.navbar-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--space-24);
-}
+/* Navbar & Controls */
+.navbar { background: var(--color-surface); border-bottom: 1px solid var(--color-border); padding: var(--space-12) var(--space-24); }
+.navbar-content { display: flex; justify-content: space-between; align-items: center; max-width: 1400px; margin: auto; }
+.navbar-brand { display: flex; align-items: center; gap: var(--space-8); font-weight: 600; }
+.navbar-controls { display: flex; align-items: center; gap: var(--space-16); }
+.realtime-clock { text-align: center; }
+#clock-time { font-weight: 600; }
+#clock-date { font-size: var(--font-size-sm); color: var(--color-text-secondary); }
 
 /* Theme Switcher */
 .theme-switcher { display: flex; align-items: center; }
-.theme-toggle-label {
-    display: flex; align-items: center; cursor: pointer;
-    gap: var(--space-8); color: var(--color-text-secondary);
-}
+.theme-toggle-label { display: flex; align-items: center; cursor: pointer; gap: var(--space-8); color: var(--color-text-secondary); }
 .theme-toggle-checkbox { display: none; }
-.theme-toggle-switch {
-    position: relative; width: 40px; height: 22px;
-    background: var(--color-border); border-radius: 11px;
-    transition: background-color 0.3s;
-}
-.theme-toggle-switch::before {
-    content: ''; position: absolute;
-    width: 18px; height: 18px; left: 2px; top: 2px;
-    background: white; border-radius: 50%;
-    transition: transform 0.3s;
-}
+.theme-toggle-switch { position: relative; width: 40px; height: 22px; background: var(--color-border); border-radius: 11px; transition: background-color var(--transition-speed); }
+.theme-toggle-switch::before { content: ''; position: absolute; width: 18px; height: 18px; left: 2px; top: 2px; background: white; border-radius: 50%; transition: transform var(--transition-speed); }
 .theme-toggle-checkbox:checked + .theme-toggle-switch { background: var(--color-primary); }
 .theme-toggle-checkbox:checked + .theme-toggle-switch::before { transform: translateX(18px); }
 
-/* Calendar Upgrades */
-.calendar-grid {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: var(--space-8);
-}
-.calendar-day-header {
-    text-align: center;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    padding-bottom: var(--space-8);
-    font-size: var(--font-size-sm);
-}
-.day-cell {
-  aspect-ratio: 1 / 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: var(--space-8);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-.day-cell:not(.empty):hover {
-    transform: translateY(-4px);
-    box-shadow: 0 4px 12px var(--color-shadow);
-}
+/* Calendar */
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: var(--space-8); }
+.calendar-day-header { text-align: center; font-weight: 600; color: var(--color-text-secondary); padding-bottom: var(--space-8); font-size: var(--font-size-sm); }
+.day-cell { aspect-ratio: 1; padding: var(--space-8); border-radius: var(--radius-md); background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.day-cell:not(.empty):hover { transform: translateY(-4px); box-shadow: 0 4px 12px var(--color-shadow); }
 .day-cell.empty { background: transparent; border: none; cursor: default; }
 .day-cell .day-number { font-weight: 500; }
-.day-cell.today {
-    border: 2px solid var(--color-primary);
-    background-color: color-mix(in srgb, var(--color-primary) 10%, transparent);
-}
-.meal-dots {
-  display: flex;
-  gap: var(--space-4);
-  height: 8px; /* Reserve space */
-}
-.meal-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-}
+.day-cell.today { border: 2px solid var(--color-primary); }
+.meal-dots { display: flex; gap: var(--space-4); margin-top: var(--space-4); height: 8px; }
+.meal-dot { width: 8px; height: 8px; border-radius: 50%; }
 .meal-dot.lunch { background-color: var(--color-lunch); }
 .meal-dot.dinner { background-color: var(--color-dinner); }
 
-/* Utility classes (add if not present) */
-.hidden { display: none !important; }
-
-/* Add other existing styles from your style.css file below */
-/* e.g., .btn, .form-control, .stat-card, etc. */
-/* Make sure they use the new CSS variables for colors! */
+/* General Components */
+.btn { padding: var(--space-8) var(--space-16); border-radius: var(--radius-md); border: 1px solid transparent; font-weight: 600; cursor: pointer; transition: all var(--transition-speed); }
+.btn--primary { background: var(--color-primary); color: white; }
+.btn--primary:hover { background: var(--color-primary-hover); }
+.btn--outline { background: transparent; border-color: var(--color-primary); color: var(--color-primary); }
+.btn--outline:hover { background: var(--color-primary); color: white; }
+.form-control { width: 100%; padding: var(--space-8); border-radius: var(--radius-md); border: 1px solid var(--color-border); background: var(--color-background); color: var(--color-text-primary); }
+.form-group { margin-bottom: var(--space-16); }
+/* Add more component styles as needed */
