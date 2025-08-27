@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.mealRate = 45;
             this.mealData = {
                 "Abid Hossain": { 
-                    "2025-07-25": { lunch: true, dinner: true }, // Previous month data
+                    "2025-07-25": { lunch: true, dinner: true },
                     "2025-08-27": { lunch: true, dinner: false }, 
                     "2025-08-26": { lunch: true, dinner: true } 
                 },
@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             this.paymentData = {
                 "Abid Hossain": [
-                    { id: Date.now() - 1000, amount: 500, date: "2025-07-15" }, // Previous month payment
+                    { id: Date.now() - 1000, amount: 500, date: "2025-07-15" },
                     { id: Date.now(), amount: 1500, date: "2025-08-01" }
                 ],
                 "Ahsan Ansari": [{ id: Date.now() + 1, amount: 2000, date: "2025-08-05" }]
@@ -71,8 +71,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const fab = document.getElementById('fab');
             fab.addEventListener('click', e => {
-                if (e.target.closest('#fabBtn')) document.getElementById('fabMenu').classList.toggle('hidden');
-                if (e.target.closest('#addPaymentBtn')) this.renderPaymentView();
+                const fabMenu = document.getElementById('fabMenu');
+                if (e.target.closest('#fabBtn')) {
+                    fabMenu.classList.toggle('hidden');
+                }
+                if (e.target.closest('#addPaymentBtn')) {
+                    this.renderPaymentView();
+                    fabMenu.classList.add('hidden');
+                }
             });
         }
 
@@ -131,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             this.renderCalendar();
         }
 
-        renderCalendar() { /* Unchanged from previous correct version */ 
+        renderCalendar() {
             const calEl = document.getElementById('calendar'); calEl.innerHTML = '';
             const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
             daysOfWeek.forEach(day => calEl.innerHTML += `<div class="calendar-day-header">${day}</div>`);
@@ -153,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        renderDayDetailView() { /* Unchanged from previous correct version */ 
+        renderDayDetailView() {
             const dateStr = this.getLocalISODate(this.selectedDate);
             const dayData = this.mealData[this.currentUser]?.[dateStr] || { lunch: false, dinner: false };
             const mealCount = (dayData.lunch ? 1 : 0) + (dayData.dinner ? 1 : 0);
@@ -174,7 +180,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>`;
         }
         
-        renderPaymentView() { /* Unchanged from previous correct version */ }
+        renderPaymentView() {
+            this.mainContent.innerHTML = `
+                <div id="paymentView" class="view">
+                    <div class="payment-header"><button id="backToCalendar" class="btn btn--outline"><i class="fas fa-arrow-left"></i> Back</button><h1>Payment Tracking</h1></div>
+                    <div class="payment-form-card"></div>
+                    <div class="payment-history"><h3>Payment History</h3><div id="paymentList" class="payment-list"></div></div>
+                </div>`;
+            this.resetPaymentForm();
+            this.updatePaymentList();
+        }
 
         // --- DATA & LOGIC --- //
         navigateMonth(dir) { this.currentDate.setMonth(this.currentDate.getMonth() + dir); this.renderDashboardView(); }
@@ -193,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const meals = this.mealData[this.currentUser] || {};
             const payments = this.paymentData[this.currentUser] || [];
             
-            // 1. Calculate totals for ALL TIME
             let totalSpentAllTime = 0;
             for (const dateStr in meals) {
                 if (meals[dateStr].lunch) totalSpentAllTime += this.mealRate;
@@ -201,7 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             const totalPaidAllTime = payments.reduce((sum, p) => sum + p.amount, 0);
             
-            // 2. Calculate totals for the CURRENTLY VIEWED MONTH
             const year = this.currentDate.getFullYear();
             const month = this.currentDate.getMonth();
             let mealsThisMonth = 0;
@@ -218,22 +231,55 @@ document.addEventListener('DOMContentLoaded', () => {
                 return (d.getUTCFullYear() === year && d.getUTCMonth() === month) ? sum + p.amount : sum;
             }, 0);
 
-            // 3. The final balance definition
             const balanceRemaining = totalPaidAllTime - totalSpentAllTime;
 
-            return {
-                balanceRemaining,
-                spentThisMonth,
-                paidThisMonth,
-                mealsThisMonth
-            };
+            return { balanceRemaining, spentThisMonth, paidThisMonth, mealsThisMonth };
         }
 
-        handlePaymentFormSubmit() { /* Unchanged from previous correct version */ }
-        handleEditPayment(id) { /* Unchanged from previous correct version */ }
-        handleDeletePayment(id) { /* Unchanged from previous correct version */ }
-        resetPaymentForm() { /* Unchanged from previous correct version */ }
-        updatePaymentList() { /* Unchanged from previous correct version */ }
+        handlePaymentFormSubmit() {
+            const amount = parseInt(document.getElementById('paymentAmount').value);
+            const date = document.getElementById('paymentDate').value;
+            if (!amount || !date) return;
+            if (!this.paymentData[this.currentUser]) this.paymentData[this.currentUser] = [];
+            
+            if (this.editingPaymentId) {
+                const payment = this.paymentData[this.currentUser].find(p => p.id == this.editingPaymentId);
+                payment.amount = amount; payment.date = date;
+            } else {
+                this.paymentData[this.currentUser].push({ id: Date.now(), amount, date });
+            }
+            this.resetPaymentForm();
+            this.updatePaymentList();
+        }
+        handleEditPayment(id) {
+            this.editingPaymentId = id;
+            const payment = this.paymentData[this.currentUser].find(p => p.id == id);
+            document.getElementById('paymentFormTitle').textContent = 'Edit Payment';
+            document.getElementById('paymentAmount').value = payment.amount;
+            document.getElementById('paymentDate').value = payment.date;
+        }
+        handleDeletePayment(id) {
+            if (confirm('Delete this payment?')) {
+                this.paymentData[this.currentUser] = this.paymentData[this.currentUser].filter(p => p.id != id);
+                this.updatePaymentList();
+            }
+        }
+        resetPaymentForm() {
+            this.editingPaymentId = null;
+            const formContainer = this.mainContent.querySelector('.payment-form-card');
+            formContainer.innerHTML = `<h3 id="paymentFormTitle">Record Payment</h3><form id="paymentForm"><div class="form-group"><label>Amount</label><input type="number" id="paymentAmount" class="form-control" required></div><div class="form-group"><label>Date</label><input type="date" id="paymentDate" class="form-control" required></div><button type="submit" class="btn btn--primary">Save</button></form>`;
+            document.getElementById('paymentDate').valueAsDate = new Date();
+        }
+        updatePaymentList() {
+            const listEl = document.getElementById('paymentList');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+            const payments = this.paymentData[this.currentUser] || [];
+            if (payments.length === 0) { listEl.innerHTML = '<p>No payments recorded.</p>'; return; }
+            payments.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(p => {
+                listEl.innerHTML += `<div class="payment-item"><div><strong>₹${p.amount}</strong><span> on ${new Date(p.date).toLocaleDateString()}</span></div><div class="payment-actions">${this.isAdmin ? `<button class="btn--icon edit-btn" data-payment-id="${p.id}"><i class="fas fa-edit"></i></button><button class="btn--icon delete-btn" data-payment-id="${p.id}"><i class="fas fa-trash"></i></button>` : ''}</div></div>`;
+            });
+        }
     }
 
     window.app = new FoodServiceApp();
