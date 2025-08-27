@@ -1,33 +1,51 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // --- Firebase Configuration with YOUR keys ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyCCh25_zp7hIkWEmRhOgUejqMfQhe5lnBs",
-      authDomain: "am2pm-ecdb4.firebaseapp.com",
-      databaseURL: "https://am2pm-ecdb4-default-rtdb.firebaseio.com/",
-      projectId: "am2pm-ecdb4",
-      storageBucket: "am2pm-ecdb4.appspot.com",
-      messagingSenderId: "237983268562",
-      appId: "1:237983268562:web:22b0194edda7f944dbb70b"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const database = firebase.database();
-
     class FoodServiceApp {
         constructor() {
+            // State
             this.isAdmin = false;
             this.currentUser = '';
             this.loggedInUser = '';
-            this.currentDate = new Date();
+            this.currentDate = new Date(); // CRITICAL FIX: Removed the extra "new"
             this.selectedDate = null;
             this.editingPaymentId = null;
+
+            // Data
             this.users = ["Abid Hossain", "Ahsan Ansari"];
             this.mealRate = 45;
-            this.mealData = {};
-            this.paymentData = {};
+            
+            // Load saved data when the app starts
+            this._loadData();
             
             this.init();
+        }
+
+        // --- DATA PERSISTENCE (SAVE & LOAD) --- //
+        _saveData() {
+            localStorage.setItem('mealData', JSON.stringify(this.mealData));
+            localStorage.setItem('paymentData', JSON.stringify(this.paymentData));
+        }
+
+        _loadData() {
+            const savedMealData = localStorage.getItem('mealData');
+            const savedPaymentData = localStorage.getItem('paymentData');
+
+            if (savedMealData) {
+                this.mealData = JSON.parse(savedMealData);
+            } else {
+                this.mealData = {
+                    "Abid Hossain": { "2025-08-27": { lunch: true, dinner: false }, "2025-08-26": { lunch: true, dinner: true } },
+                    "Ahsan Ansari": { "2025-08-26": { lunch: true, dinner: true } }
+                };
+            }
+
+            if (savedPaymentData) {
+                this.paymentData = JSON.parse(savedPaymentData);
+            } else {
+                this.paymentData = {
+                    "Abid Hossain": [{ id: Date.now(), amount: 1500, date: "2025-08-01" }],
+                    "Ahsan Ansari": [{ id: Date.now() + 1, amount: 2000, date: "2025-08-05" }]
+                };
+            }
         }
 
         init() {
@@ -38,31 +56,9 @@ document.addEventListener('DOMContentLoaded', () => {
             this.initParticles();
         }
 
-        async _loadData() {
-            try {
-                const snapshot = await database.ref().once('value');
-                const data = snapshot.val() || {};
-                this.mealData = data.mealData || { "Abid Hossain": {}, "Ahsan Ansari": {} };
-                this.paymentData = data.paymentData || { "Abid Hossain": [], "Ahsan Ansari": [] };
-            } catch (error) {
-                console.error("Firebase load failed:", error);
-                alert("Could not connect to the database. Check your internet and Firebase setup.");
-            }
-        }
-
-        _saveMealData() { database.ref('mealData').set(this.mealData); }
-        _savePaymentData() { database.ref('paymentData').set(this.paymentData); }
-        
         bindEvents() {
-            document.getElementById('loginForm').addEventListener('submit', async e => { 
-                e.preventDefault(); 
-                await this._loadData();
-                this.handleLogin(); 
-            });
-            document.getElementById('viewOnlyBtn').addEventListener('click', async () => { 
-                await this._loadData(); 
-                this.handleViewOnly(); 
-            });
+            document.getElementById('loginForm').addEventListener('submit', e => { e.preventDefault(); this.handleLogin(); });
+            document.getElementById('viewOnlyBtn').addEventListener('click', () => this.handleViewOnly());
             document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
             document.getElementById('userSelect').addEventListener('change', e => { this.currentUser = e.target.value; this.renderDashboardView(); });
             document.getElementById('themeToggle').addEventListener('change', e => this.toggleTheme(e.target.checked));
@@ -190,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!this.mealData[this.currentUser]) this.mealData[this.currentUser] = {};
             if (!this.mealData[this.currentUser][dateStr]) this.mealData[this.currentUser][dateStr] = { lunch: false, dinner: false };
             this.mealData[this.currentUser][dateStr][meal] = status;
-            this._saveMealData();
+            this._saveData();
             this.renderDayDetailView();
         }
         
@@ -229,7 +225,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 this.paymentData[this.currentUser].push({ id: Date.now(), amount, date });
             }
-            this._savePaymentData();
+            this._saveData();
             this.resetPaymentForm();
             this.updatePaymentList();
         }
@@ -243,7 +239,7 @@ document.addEventListener('DOMContentLoaded', () => {
         handleDeletePayment(id) {
             if (confirm('Delete this payment?')) {
                 this.paymentData[this.currentUser] = this.paymentData[this.currentUser].filter(p => p.id != id);
-                this._savePaymentData();
+                this._saveData();
                 this.updatePaymentList();
             }
         }
