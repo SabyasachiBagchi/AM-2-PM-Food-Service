@@ -8,7 +8,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
 <body>
-    <!-- Login Modal -->
     <div id="loginModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -18,12 +17,13 @@
             <form id="loginForm" class="login-form">
                 <div class="form-group">
                     <label for="username" class="form-label">Username</label>
-                    <input type="text" id="username" class="form-control" placeholder="Enter username">
+                    <input type="text" id="username" class="form-control" placeholder="Enter username" required>
                 </div>
                 <div class="form-group">
                     <label for="password" class="form-label">Password</label>
-                    <input type="password" id="password" class="form-control" placeholder="Enter password">
+                    <input type="password" id="password" class="form-control" placeholder="Enter password" required>
                 </div>
+                <div id="loginError" class="login-error hidden"></div>
                 <div class="login-buttons">
                     <button type="submit" class="btn btn--primary">
                         <i class="fas fa-sign-in-alt"></i> Admin Login
@@ -36,9 +36,7 @@
         </div>
     </div>
 
-    <!-- Main Application -->
     <div id="app" class="app hidden">
-        <!-- Navigation Header -->
         <nav class="navbar">
             <div class="navbar-content">
                 <div class="navbar-brand">
@@ -47,6 +45,7 @@
                 </div>
                 <div class="navbar-controls">
                     <div class="user-selector">
+                        <label for="userSelect" class="form-label">Viewing:</label>
                         <select id="userSelect" class="form-control">
                             <option value="">Select User</option>
                         </select>
@@ -61,9 +60,7 @@
             </div>
         </nav>
 
-        <!-- Main Content -->
         <main class="main-content">
-            <!-- Dashboard View -->
             <div id="dashboardView" class="view">
                 <div class="dashboard-header">
                     <h1>Monthly Overview</h1>
@@ -78,7 +75,6 @@
                     </div>
                 </div>
 
-                <!-- Stats Cards -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">
@@ -118,26 +114,19 @@
                     </div>
                 </div>
 
-                <!-- Calendar Grid -->
                 <div class="calendar-section">
                     <div class="calendar-header">
                         <h2>Meal Calendar</h2>
                         <div class="calendar-legend">
-                            <div class="legend-item">
-                                <div class="legend-dot lunch"></div>
-                                <span>Lunch</span>
-                            </div>
-                            <div class="legend-item">
-                                <div class="legend-dot dinner"></div>
-                                <span>Dinner</span>
-                            </div>
+                             <div class="legend-item"><span class="legend-dot taken"></span><span>Meal Taken</span></div>
+                             <div class="legend-item"><span class="legend-dot skipped"></span><span>Skipped</span></div>
+                             <div class="legend-item"><span class="legend-dot today"></span><span>Today</span></div>
                         </div>
                     </div>
                     <div id="calendar" class="calendar-grid"></div>
                 </div>
             </div>
 
-            <!-- Day Detail View -->
             <div id="dayDetailView" class="view hidden">
                 <div class="day-detail-header">
                     <button id="backToCalendar" class="btn btn--outline">
@@ -157,7 +146,7 @@
                                 <input type="checkbox" id="lunchToggle">
                                 <span class="toggle-slider"></span>
                             </label>
-                            <span class="toggle-label">I ate lunch today</span>
+                            <span id="lunchToggleLabel" class="toggle-label">I ate lunch today</span>
                         </div>
                     </div>
 
@@ -171,7 +160,7 @@
                                 <input type="checkbox" id="dinnerToggle">
                                 <span class="toggle-slider"></span>
                             </label>
-                            <span class="toggle-label">I ate dinner today</span>
+                            <span id="dinnerToggleLabel" class="toggle-label">I ate dinner today</span>
                         </div>
                     </div>
                 </div>
@@ -191,7 +180,6 @@
                 </div>
             </div>
 
-            <!-- Payment View -->
             <div id="paymentView" class="view hidden">
                 <div class="payment-header">
                     <button id="backToCalendarFromPayment" class="btn btn--outline">
@@ -205,11 +193,11 @@
                     <form id="paymentForm">
                         <div class="form-group">
                             <label for="paymentAmount" class="form-label">Amount Paid (₹)</label>
-                            <input type="number" id="paymentAmount" class="form-control" placeholder="Enter amount">
+                            <input type="number" id="paymentAmount" class="form-control" placeholder="Enter amount" min="1" required>
                         </div>
                         <div class="form-group">
                             <label for="paymentDate" class="form-label">Payment Date</label>
-                            <input type="date" id="paymentDate" class="form-control">
+                            <input type="date" id="paymentDate" class="form-control" required>
                         </div>
                         <button type="submit" class="btn btn--primary">
                             <i class="fas fa-save"></i> Save Payment
@@ -220,13 +208,11 @@
                 <div class="payment-history">
                     <h3>Payment History</h3>
                     <div id="paymentList" class="payment-list">
-                        <!-- Payment history will be populated here -->
-                    </div>
+                        </div>
                 </div>
             </div>
         </main>
 
-        <!-- Floating Action Button -->
         <div id="fab" class="fab hidden">
             <button id="fabBtn" class="fab-button">
                 <i class="fas fa-plus"></i>
@@ -238,12 +224,6 @@
                 </button>
             </div>
         </div>
-    </div>
-
-    <!-- Loading Spinner -->
-    <div id="loadingSpinner" class="loading-spinner hidden">
-        <div class="spinner"></div>
-        <p>Loading...</p>
     </div>
 
     <script src="app.js"></script>
